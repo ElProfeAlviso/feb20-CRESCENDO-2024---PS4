@@ -1,48 +1,47 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
+/*  Copyright (c) FIRST and other WPILib contributors.
+    Open Source Software; you can modify and/or share it under the terms of
+    the WPILib BSD license file in the root directory of this project.
+
+    TITANIUM RAMS 5959, FRC CHIMUELO 2024
+    Original Code by: Beatriz Marún
+    Mentor: Sebastian Leon.
+    Sensors Update: Profe Alviso
+*/
+
+package frc.robot; //Paquete principal de directorios de archivos del proyecto.
+
+import edu.wpi.first.wpilibj.TimedRobot; //Framework de un robot tipo Iterativo  por tiempo de ejecucion de 20ms.
+import edu.wpi.first.wpilibj.drive.MecanumDrive; //Libreria de control de un chasis tipo mecanum Drive.
+import edu.wpi.first.wpilibj.RobotController; //Libreria de obtencion de datos del controlador roborio.
+import edu.wpi.first.wpilibj.DriverStation; //Libreria para obtener datos del software de Driver Station.
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard; //Libreria para enviar y recibir datos desde y hacia el Shuffleboard.
+import edu.wpi.first.wpilibj.Timer; //Libreria para crear timers (Cronometros)
+import edu.wpi.first.wpilibj.DriverStation.Alliance; //Libreria para obtener el color de alianza desde la cancha.
+import edu.wpi.first.wpilibj.PS4Controller; //Libreria para usar un control de PS4
+import edu.wpi.first.wpilibj.AddressableLED; //Libreria para controlar tiras led programables Neopixel.
+import edu.wpi.first.wpilibj.AddressableLEDBuffer; //Libreria para darle longitud de leds de la tira neopixel.
+import edu.wpi.first.wpilibj.GenericHID; //Libreria para usar un control Generico Logitech.
+import edu.wpi.first.math.geometry.Rotation2d; //Libreria para convertir un angulo en coordenadas X y Y.
+import edu.wpi.first.math.MathUtil; //Libreria para usar herramientas de matematicas.
+import edu.wpi.first.math.controller.PIDController; //Libreria para usar controladores PID.
+
+import java.util.Optional; //libreria para alternar entre un dato presente y otro que no o null.
+import com.ctre.phoenix.motorcontrol.NeutralMode; //Libreria para activar el modo Brake
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX; //Libreria para utilizar controladores Victor SPX y motores CIM
+import com.revrobotics.CANSparkMax; //Libreria para usar controladores SPARK con motores NEO.
+import com.revrobotics.RelativeEncoder; //Libreria para obtener el valor del encoder realativo de los NEO.
+import com.revrobotics.CANSparkLowLevel.MotorType; //Libreria para indicar el tipo de motor conectado a los sparks.
+import com.kauailabs.navx.frc.AHRS; //Libreria para obtener los datos del gyroscopio NAVX.
+import edu.wpi.first.wpilibj.SPI; //Libreria para conectar el gyroscopio en el puerto MXP SPI del roborio.
+
+//Librerias para sensores 
+
+import edu.wpi.first.wpilibj.DigitalInput; //Libreria para usar entradas digitales.
 
 
-// TITANIUM RAMS 5959, CHIMUELO
-// Original Code by: Beatriz Marún
+import edu.wpi.first.cameraserver.CameraServer; //Libreria para enviar la imagen de la web cam al dashboard.
 
-//Test Code: Profe Alviso
-
-
-
-
-package frc.robot;
-
-
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.drive.MecanumDrive;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.PS4Controller;
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
-
-import java.util.Optional;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX; //esta es la buena, la otra tiene bug por favor (dejenos bailar) no la uses.
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.SPI;
-
-
-import edu.wpi.first.cameraserver.CameraServer;
-
-
-//limelight
+//limelight Librerias para obtener datos de posicion de la camara Lime Light.
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -80,20 +79,31 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 public class Robot extends TimedRobot {
 
 
-  Timer cronos;
+  DigitalInput LimitSwitchPivotdown;
+  DigitalInput LimitSwitchPivotup;
+  DigitalInput LimitSwitchNote;
 
 
-  PS4Controller control;
-  GenericHID operador;
+  boolean LimitSwitchPivotAbajo;
+  boolean LimitSwitchPivotArriba;
+  boolean LimitSwitchNoteDetected;
 
 
-  AHRS navx;
+
+  Timer cronos;  //Timer para iniciar un cronometro de tiempo  
 
 
-  Optional<Alliance> ally;
+  PS4Controller control;   //Crear el control de operador de chasis.
+  GenericHID operador;     //Crear el control de operador de mecanismos.
+
+
+  AHRS navx; //Crear objeto de Gyroscopio.
+
+
+  Optional<Alliance> ally; //Objeto de seleccion de alianza.
 
   
-  double tiempoMatch;
+  double tiempoMatch; //Variable para llevar la cuenta del tiempo del match.
 
 
   //AUTÓNOMOS
@@ -106,13 +116,13 @@ public class Robot extends TimedRobot {
   double rotar;//segundos que rota (prueba)
  
  
-  //CHASSIS
+  //Creacion de objetos de motores del chasis.
   WPI_VictorSPX rearRight;
   WPI_VictorSPX rearLeft;
   WPI_VictorSPX frontRight;
   WPI_VictorSPX frontLeft;
  
-  MecanumDrive myRobot;
+  MecanumDrive myRobot; //Objeto para crear un robot con chasis mecanum drive.
  
   // declarar variables de datos de movimiento.
   double des_x;
@@ -194,9 +204,21 @@ public class Robot extends TimedRobot {
   boolean ledBlink = true;
   int m_rainbowFirstPixelHue;
 
+  
+
 
   @Override
   public void robotInit() {// declarar todos los objetos
+
+    
+
+    //Declaracion de sensores Digitales
+
+    LimitSwitchPivotdown = new DigitalInput(0);
+    LimitSwitchPivotup = new DigitalInput(1);
+    LimitSwitchNote = new DigitalInput(2);
+
+    
 
 
     cronos = new Timer();
@@ -251,6 +273,7 @@ public class Robot extends TimedRobot {
     operador = new GenericHID(1);
    
     navx = new AHRS(SPI.Port.kMXP); // SPI es el puerto en el q se conecta la navx
+    navx.reset();
 
 
     chassisPID = new PIDController(kP, kI, kD);
@@ -294,6 +317,8 @@ public class Robot extends TimedRobot {
     m_led.setData(m_ledBuffer);
     m_led.start();
 
+    
+
   }
 
 
@@ -311,8 +336,15 @@ public class Robot extends TimedRobot {
 
 
     SmartDashboard.putNumber("Voltaje", RobotController.getBatteryVoltage());
-    SmartDashboard.putNumber("Angulo", navx.getYaw());
-   
+    SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
+    
+    LimitSwitchPivotAbajo = !LimitSwitchPivotdown.get();
+    LimitSwitchPivotArriba = !LimitSwitchPivotup.get();
+    LimitSwitchNoteDetected = !LimitSwitchNote.get();
+
+    SmartDashboard.putBoolean("Pivot abajo", LimitSwitchPivotAbajo);
+    SmartDashboard.putBoolean("Pivot arriba", LimitSwitchPivotArriba);
+    SmartDashboard.putBoolean("Nota Detectada", LimitSwitchNoteDetected);
    }
 
 
