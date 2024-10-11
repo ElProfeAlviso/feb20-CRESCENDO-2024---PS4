@@ -35,10 +35,7 @@ import com.kauailabs.navx.frc.AHRS; //Libreria para obtener los datos del gyrosc
 import edu.wpi.first.wpilibj.SPI; //Libreria para conectar el gyroscopio en el puerto MXP SPI del roborio.
 
 //Librerias para sensores 
-
 import edu.wpi.first.wpilibj.DigitalInput; //Libreria para usar entradas digitales.
-
-
 import edu.wpi.first.cameraserver.CameraServer; //Libreria para enviar la imagen de la web cam al dashboard.
 
 //limelight Librerias para obtener datos de posicion de la camara Lime Light.
@@ -46,69 +43,65 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+/*===================================================================================================
+ =================
+ Red CAN (ID . Dispositivo)
+ =================
+  0 · roboRIO
+  1 · PDP
 
-//  =================
-//       Red CAN
-//  =================
-//   0 · roboRIO
-//   1 · PDP
+  2 · rearRight
+  3 · rearLeft
+  4 · frontRight
+  5 · frontLeft
 
+  6 · intakeLeft
+  7 · intakeRight
 
-//   2 · rearRight
-//   3 · rearLeft
-//   4 · frontRight
-//   5 · frontLeft
+  8 · shooterLeft
+  9 · shooterRight
 
-//   6 · intakeLeft
-//   7 · intakeRight
+  10 · pivotLeft +sube
+  11 · pivotRight -sube
 
-//   8 · shooterLeft
-//   9 · shooterRight
+  12 · climberLeft
+  13 · climberRight
+  ===================================================================================================
+  ============================
+  SENSORES DIGITALES
+  ============================
+    Pivot Abajo DIO 0
+    Pivot Arriba DIO 1
+    Nota detectada DIO 2
 
-//   10 · pivotLeft +sube
-//   11 · pivotRight -sube
+    -100 posición para shooter
+*/
 
-//   12 · climberLeft
-//   13 · climberRight
-//   ==================
+public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
+  DigitalInput LimitSwitchPivotdown; //Sensor infrarojo de deteccion de pivot abajo
+  DigitalInput LimitSwitchPivotup;   //Sensor infrarojo de deteccion de pivot arriba
+  DigitalInput LimitSwitchNote;      //Sensor infrarojo de deteccion de nota en intake.
 
-//-100 posición para shooter
+  boolean LimitSwitchPivotAbajo;      //variable para guardar el estado del sensor de pivot abajo
+  boolean LimitSwitchPivotArriba;     //Variable para guardar el estado del sensor de pivot arriba
+  boolean LimitSwitchNoteDetected;    //Variable para guardar el estado de la nota en el intake.
 
-
-public class Robot extends TimedRobot {
-
-
-  DigitalInput LimitSwitchPivotdown;
-  DigitalInput LimitSwitchPivotup;
-  DigitalInput LimitSwitchNote;
-
-
-  boolean LimitSwitchPivotAbajo;
-  boolean LimitSwitchPivotArriba;
-  boolean LimitSwitchNoteDetected;
-
-
-
-  Timer cronos;  //Timer para iniciar un cronometro de tiempo  
-
+  Timer cronos;  //Timer para iniciar un cronometro de tiempo  para control de autonomos por tiempo.
 
   PS4Controller control;   //Crear el control de operador de chasis.
   GenericHID operador;     //Crear el control de operador de mecanismos.
 
+  AHRS navx; //Crear objeto de Gyroscopio NavX
 
-  AHRS navx; //Crear objeto de Gyroscopio.
-
-
-  Optional<Alliance> ally; //Objeto de seleccion de alianza.
-
+  Optional<Alliance> ally; //Objeto de lectura de seleccion de alianza.
   
-  double tiempoMatch; //Variable para llevar la cuenta del tiempo del match.
+  double tiempoMatch; //Variable para llevar la cuenta del tiempo del match para control de leds en end game.
 
 
   //AUTÓNOMOS
  
-  double rotatcionAutonomo; //lograr rotación durante autónomo
+  double rotatcionAutonomo; //Variable para guardar el calculo de PID de rotacion en autonomos.
  
   // PRUEBAS
   double sega; //segundos para avanzar (pruebas)
@@ -116,7 +109,7 @@ public class Robot extends TimedRobot {
   double rotar;//segundos que rota (prueba)
  
  
-  //Creacion de objetos de motores del chasis.
+  //Creacion de objetos de motores del chasis con controlador VictorSPX y motores CIM.
   WPI_VictorSPX rearRight;
   WPI_VictorSPX rearLeft;
   WPI_VictorSPX frontRight;
@@ -124,35 +117,32 @@ public class Robot extends TimedRobot {
  
   MecanumDrive myRobot; //Objeto para crear un robot con chasis mecanum drive.
  
-  // declarar variables de datos de movimiento.
-  double des_x;
+  // Variables para guardar los valores de los joysticks provenientes del control de PS4.
+  double des_x; 
   double des_y;
   double rot;
 
-  int angulosChassis;
+  int angulosChassis; //Variable para guardar los datos de los  graodos del POV.
  
   //PID PARA EL CHASSIS
 
-
-  PIDController chassisPID; //cambio de nombre una vez empezando a agregar más pid
-
+  PIDController chassisPID; //Controlador PID para chasis y sus parametros.
 
   static final double kP = 0.018;
   static final double kI = 0.00;
   static final double kD = 0.00;
   static final double kToleranceDegrees = 2.0f;
  
-  //MECANISMOS
+  //Declaracion de objetos para mecanismos con controladores SPARK MAX y Motores NEO.
   CANSparkMax intakeRight, intakeLeft;
   CANSparkMax shooterRight, shooterLeft;
-
   CANSparkMax  climberRight, climberLeft;
-
   CANSparkMax pivotRight, pivotLeft;
-  boolean pivotSwitchPID;
-  double pivotPIDsetpoint;
-  PIDController pivotPID;
 
+  //Variables para control PID del Pivot
+  boolean pivotSwitchPID;  //Habilita o deshabilita el control por PID
+  double pivotPIDsetpoint; //El setpoint utilizado para las diferentes posiciones del pivot.
+  PIDController pivotPID;  //Controlador PID del Pivo y sus parametros.
 
   static final double pivotkP = 0.02;
   static final double pivotkI = 0.00;
@@ -160,90 +150,84 @@ public class Robot extends TimedRobot {
   static final double pivotkToleranceDegrees = 2.0f;
  
  
-  //DASHBOARD
-  double chassisPote;
-  boolean fod;
+  //Variables utilizaras para enviar o recibir datos desde el Dashboard.
+  double chassisPote; //Potencia maxima del chasis
+  boolean fod;        //Habilitar o deshabilitar el control Field Oriented Drive.
 
 
-  double intakePote;
-  double shooterPote;
-  double shooterAmpPote;
+  double intakePote;  //Potencia Maxima del Intake
+  double shooterPote; //Potencia Maxima del shooter en posicion de tiro a Speaker
+  double shooterAmpPote; //Potencia Maxima del shooter en posicion para anotar en Amplificador.
 
-  double pivotPote;
-  double pivotLimiteInferior;
-  double pivotLimiteSuperior; 
+  double pivotPote;   //Potencia Maxima del Pivot en modo manual
+  double pivotLimiteInferior;  //Limite inferior del encoder del pivot
+  double pivotLimiteSuperior;  //Limite superior del encoder del pivot.
 
-  double climberPote;
-  double climberLimiteInferior;
-  double climberLimiteSuperior;
+  double climberPote;          //Potencia Maxima del Climber
+  double climberLimiteInferior; //Limite inferior del Climber
+  double climberLimiteSuperior; //Limite superior del climber.
 
-  double pivotPotePID;
-
-
-  // valores encoders
-  double pivotRotacion;
-  double climberRotacion;
+  double pivotPotePID;         //Potencia Maxima del Pivot usando el controlador PID.
 
 
-  RelativeEncoder pivotEncoder;
-  RelativeEncoder climberEncoder;
+  // Valores de posicion de los encoders
+  double pivotRotacion;    //Lectura de posicion del Pivot
+  double climberRotacion;  //Lectura de posicion del Climber
+
+  RelativeEncoder pivotEncoder;  //objeto encoder del pivot desde el sparkmax
+  RelativeEncoder climberEncoder; //Objeto encoder del climber desde el sparkmax.
 
 
-  //LIMELIGHT
+  //Creacion de objetos de protocolo Network Table para obtener los datos de la Limelight.
   NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
   NetworkTableEntry tx = table.getEntry("tx");
   NetworkTableEntry ty = table.getEntry("ty");
   NetworkTableEntry ta = table.getEntry("ta");
 
-  // leds
-  AddressableLED m_led;
-  AddressableLEDBuffer m_ledBuffer;
-  int redLeds, bluLeds;
-  double intervaloLeds = 0.25;
-  double tiempoAnterior;
-  boolean ledBlink = true;
-  int m_rainbowFirstPixelHue;
+  // Variables para control de tiras led direccionables NeoPixel.
+  AddressableLED m_led; //Creacion de objeto de la tira de leds
+  AddressableLEDBuffer m_ledBuffer; //Buffer para almacenamiento de los colores que se enviaran a la tira
+  int redLeds, bluLeds; //Valores de color azul y Rojo en RGB 255
+  double intervaloLeds = 0.25; //Velocidad de parpadeo de los leds.
+  double tiempoAnterior; //Almacena el ultimo tiempo de actualizacion de leds
+  boolean ledBlink = true; //Activar o desactivar el parpadeo de leds.
+  int m_rainbowFirstPixelHue; //Almacena el tono de color en modo (Hue, Saturation, Lightness)
 
   
 
 
   @Override
-  public void robotInit() {// declarar todos los objetos
-
-    
+  public void robotInit() {// Construir todos los objetos con sus puertos y valores iniciales.
 
     //Declaracion de sensores Digitales
+    LimitSwitchPivotdown = new DigitalInput(0);  //Sensor infrarojo conectado en DIO 0
+    LimitSwitchPivotup = new DigitalInput(1);    // Sensor infrarojo conectado en DIO 1
+    LimitSwitchNote = new DigitalInput(2);       // Sensor infrarojo conectado en DIO 2
+  
+    cronos = new Timer(); //Nuevo timer para cronometrar tiempo de autonomo.
 
-    LimitSwitchPivotdown = new DigitalInput(0);
-    LimitSwitchPivotup = new DigitalInput(1);
-    LimitSwitchNote = new DigitalInput(2);
-
-    
-
-
-    cronos = new Timer();
-
-
+    //Asignacion de IDS de red CAN a motores del Chasis con controladores VictorSPX y motores CIM.
     rearRight = new WPI_VictorSPX(2);
     rearLeft = new WPI_VictorSPX(3);
     frontRight = new WPI_VictorSPX(4);
     frontLeft = new WPI_VictorSPX(5);
 
-
-    rearRight.setInverted(false); // dos ejes invertidos por sentido común (lo olvidamos ayer xd 18/09)
+    //Invertir giro de motores segun su posicion en el chasis.
+    rearRight.setInverted(false); 
     rearLeft.setInverted(true);
-    frontRight.setInverted(false); // puede que cambie pq lo copié tal cuál
+    frontRight.setInverted(false); 
     frontLeft.setInverted(true);
 
-
+    //Cambio de modo NEUTRAL de los motores a modo COAST cuando no esta operando en algun OPMODE.
     rearLeft.setNeutralMode(NeutralMode.Coast);
     rearRight.setNeutralMode(NeutralMode.Coast);
     frontLeft.setNeutralMode(NeutralMode.Coast);
     frontRight.setNeutralMode(NeutralMode.Coast);
 
-
+    //Creacion del objeto del chasis tipo Mecanum Drive, con los motores antes declarados del chasis.
     myRobot = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
    
+    // Asignacion de IDS de red CAN a motores del Chasis con controladores SPARK MAX y Motores NEO.   
     intakeLeft = new CANSparkMax(6, MotorType.kBrushless);
     intakeRight = new CANSparkMax(7, MotorType.kBrushless);
     shooterLeft = new CANSparkMax(8, MotorType.kBrushless);
@@ -253,91 +237,90 @@ public class Robot extends TimedRobot {
     climberLeft = new CANSparkMax(12, MotorType.kBrushless);
     climberRight = new CANSparkMax(13, MotorType.kBrushless);
 
-
-    //ENCODERS
-    pivotEncoder = pivotRight.getEncoder(); //se obtiene encoder del motor controlador
-    pivotEncoder.setPosition(0); //se declara que la posición inicie en 0
-    // pivotEncoder.setInverted(false);
-    climberEncoder = climberRight.getEncoder();
-    climberEncoder.setPosition(0);
+    // Habilitar seguimiento MAESTRO - ESCLAVO e invertir giro en los motores de los mecanismos.
+    intakeLeft.follow(intakeRight, true); // Intake left es invertido y sigue a intakeRight.
+    shooterLeft.follow(shooterRight);            //Shooter Left Sigue a Shooter right.
+    pivotLeft.follow(pivotRight, true);   // pivot left es invertido y sigue a pivotRight.
+    climberLeft.follow(climberRight, true); // climber left es invertido y sigue a climberRight.
 
 
-    //prueba de reemplazo de Motor group
-    intakeLeft.follow(intakeRight, true); //se invierte para que los motores giren en un mismo sentido
-    shooterLeft.follow(shooterRight);
-    pivotLeft.follow(pivotRight,true);
-    climberLeft.follow(climberRight, true);
-
-
+    //Lectura de encoders de mecanismos con controlador PID.
+    pivotEncoder = pivotRight.getEncoder(); //Se obtiene la lectura del encoder de pivot Derecho
+    pivotEncoder.setPosition(0); //Se resetea la posicion del encoder a 0.
+    
+    climberEncoder = climberRight.getEncoder(); //Se obtiene la lectura del encoder de climber derecho.
+    climberEncoder.setPosition(0); //Se resetea la posicion del encoder a 0.
+  
+    //Creacion de Joysticks 0 para control de chasis PS4 y 1 para control de mecanismos Logitech.
     control = new PS4Controller(0);
     operador = new GenericHID(1);
-   
-    navx = new AHRS(SPI.Port.kMXP); // SPI es el puerto en el q se conecta la navx
+
+   //Creacion de objeto de la NAVX conectado al puerto SPI del roborio.
+    navx = new AHRS(SPI.Port.kMXP); 
     navx.reset();
 
+    //Creacion de controlador PID del chasis.
+    chassisPID = new PIDController(kP, kI, kD); //Parametros PID del controlador
+    chassisPID.enableContinuousInput(-180.0f, 180.0f); //Establece el rango de movimiento en forma continua del mecanismo
+    chassisPID.setIntegratorRange(-1.0, 1.0); //Establece los valores max y min del integrador para no saturarse si el error persiste.
+    chassisPID.setTolerance(kToleranceDegrees); //Establece la tolerancia minima para el error para que el PID no corrija con valores muy pequeños.
+    chassisPID.isContinuousInputEnabled(); //Verifica que la funcion de entrada continua este habilitada.
 
-    chassisPID = new PIDController(kP, kI, kD);
-    chassisPID.enableContinuousInput(-180.0f, 180.0f);
-    chassisPID.setIntegratorRange(-1.0, 1.0);
-    chassisPID.setTolerance(kToleranceDegrees);
-    chassisPID.isContinuousInputEnabled();
-
-
-    pivotPID = new PIDController(pivotkP, pivotkI, pivotkD);
-    pivotPID.setTolerance(pivotkToleranceDegrees);
-
-
-    // una vez declarado todos los constructores y objetos, ahora se pueden mandar
-    // datos al SmartDashboard (por conveniencia)
-    SmartDashboard.putNumber("Potencia", 1);
+    //Creacion del controlador PID del Pivot.
+    pivotPID = new PIDController(pivotkP, pivotkI, pivotkD); // Parametros PID del controlador
+    pivotPID.setTolerance(pivotkToleranceDegrees);  // Establece la tolerancia minima para el error para que el PID no corrija valores muy pequeños.
+                                                 
+    
+    // inicializar datos para visualizacion en Dashboard con valores iniciales.
+    SmartDashboard.putNumber("Potencia", 0.8);
     SmartDashboard.putNumber("Segundos rotar", 1);
     SmartDashboard.putNumber("Segundos navx", 1.1);
-    SmartDashboard.putNumber("Potencia intake", 0.9);
+    SmartDashboard.putNumber("Potencia intake", 0.8);
     SmartDashboard.putNumber("Potencia shooter", 0.7); //0.3 para amp
     SmartDashboard.putNumber("Potencia shooter amp", 0.3);
     SmartDashboard.putNumber("Potencia pivot", 0.7);
-    SmartDashboard.putNumber("Potencia Pivot PID", 0.7);
+    SmartDashboard.putNumber("Potencia Pivot PID", 0.6);
     SmartDashboard.putNumber("Potencia climber", 0.9);
     SmartDashboard.putNumber("rotar angulo", 45);
     SmartDashboard.putBoolean("FOD", true);
     SmartDashboard.putNumber("Rotacion pivot", 0);
     SmartDashboard.putNumber("Rotacion climber", 0);
     SmartDashboard.putNumber("Pivot Limite Superior", 35);
-    SmartDashboard.putNumber("Pivot Limite Inferior", -155);
+    SmartDashboard.putNumber("Pivot Limite Inferior", -130);
     SmartDashboard.putNumber("Climber Limite Superior", 225);
-    SmartDashboard.putNumber("Climber Limite Inferior", 1);
+    SmartDashboard.putNumber("Climber Limite Inferior", 10);
     SmartDashboard.putNumber("Seleccion de Autonomo", 0);
+    SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
    
-    CameraServer.startAutomaticCapture();
+    CameraServer.startAutomaticCapture(); //Inicia transmision de webcam.
 
-    // leds
-    m_led = new AddressableLED(0);
-    m_ledBuffer = new AddressableLEDBuffer(27);
-    m_led.setLength(m_ledBuffer.getLength());
-    m_led.setData(m_ledBuffer);
-    m_led.start();
-
+    // Configura la tira led Neopixel.
+    m_led = new AddressableLED(0); //Indica el puerto PWM de la tira led.
+    m_ledBuffer = new AddressableLEDBuffer(27); //indica el numero maximo de leds conectados
+    m_led.setLength(m_ledBuffer.getLength()); //Obtiene la longitud maxima de leds de la tira.
+    m_led.setData(m_ledBuffer); //Envia los datos a todos los leds del buffer
+    m_led.start(); //inicia la transmision de datos a la tira.
     
-
   }
 
 
   @Override
-  public void robotPeriodic() {// lo que el robot ejecuta desde que enciende hasta que se apaga.
-    //read values periodically
+  public void robotPeriodic() {
+    //Obtener valores de la limelight.
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
 
-
+    //Envia los valores de la deteccion de la limelight al Dashboard.
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
 
-
+    //Envia los valores de voltaje y angulo del chasis al dashboard.
     SmartDashboard.putNumber("Voltaje", RobotController.getBatteryVoltage());
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     
+    //Lectura de los sensores infrarojos para visualizacion en dashboard.
     LimitSwitchPivotAbajo = !LimitSwitchPivotdown.get();
     LimitSwitchPivotArriba = !LimitSwitchPivotup.get();
     LimitSwitchNoteDetected = !LimitSwitchNote.get();
@@ -350,18 +333,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-
+    //Reset de cronometro y navx
     cronos.start();
     cronos.reset();
 
+    navx.reset();
+
+    //Cambio de modo neutral de motores a modo BRAKE
     rearLeft.setNeutralMode(NeutralMode.Brake);
     rearRight.setNeutralMode(NeutralMode.Brake);
     frontLeft.setNeutralMode(NeutralMode.Brake);
     frontRight.setNeutralMode(NeutralMode.Brake);
 
-
-    navx.reset();
-    
+      //obtencion de color de alianza, si es roja los leds son rojos, si es azul los leds son azules.
     Optional<Alliance> ally = DriverStation.getAlliance();
     if (ally.get() == Alliance.Red) {
       for (var i = 0; i < m_ledBuffer.getLength(); i++) {
@@ -380,13 +364,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-//Variables del dashboard
+    //Variables para leer seleccion de autonomo.
     double autoSelec;
     int autoSelectInt;
+
+    //obtencion de datos desde el Dashboard.
     autoSelec = SmartDashboard.getNumber("Seleccion de Autonomo", 0);
     shooterPote = SmartDashboard.getNumber("Potencia shooter", 0);
     pivotPote = SmartDashboard.getNumber("Potencia pivot", 0);
-    pivotPotePID = SmartDashboard.getNumber("Potencia Pivot PID", 0.5);
+    pivotPotePID = SmartDashboard.getNumber("Potencia Pivot PID", 0);
     pivotLimiteSuperior = SmartDashboard.getNumber("Pivot Limite Superior", 0);
     pivotLimiteInferior = SmartDashboard.getNumber("Pivot Limite Inferior", 0);
     intakePote = SmartDashboard.getNumber("Potencia intake", 0);
@@ -395,15 +381,15 @@ public class Robot extends TimedRobot {
     segnavx = SmartDashboard.getNumber("Segundos navx", 0);
     rotar = SmartDashboard.getNumber("rotar angulo", 0);
 
-    // valores encoders
-    pivotRotacion = -pivotEncoder.getPosition(); //se obtiene valor del enconder, el negativo es para invertir la posición
+    // Obtener valores de los encoders de pivot y climber (Se invierte el giro del encoder por la posicion del motor)
+    pivotRotacion = -pivotEncoder.getPosition(); 
     climberRotacion = -climberEncoder.getPosition();
 
-    //DASHBOARD
-    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); //posteriormente se pone en el dashboard para poder ver en que posición está
+    //Se envia los valores de los encoders al Dashboard.
+    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
 
-  switch (autoSelectInt) {
+  switch (autoSelectInt) { //Variable de seleccion de autonomo.
     //Autonomo que no hace nada solo para no usar el cero en el dashboard.
     case 0:
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
@@ -739,52 +725,7 @@ if (cronos.get()<=2) {
 
         break;
 
-    case 7:
-
-    //   if (cronos.get()<=2) {
-    //   rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
-    //   myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-    //   pivotPIDsetpoint = pivotLimiteSuperior;
-    //   pivotSwitchPID = true;
-    // }
-    // else if (cronos.get()<=3) {
-    //   rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
-    //   myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-    //   shooterRight.set(shooterPote);
-    //   pivotPIDsetpoint = -100;
-    //   pivotSwitchPID = true;
-    // }
-    // else if (cronos.get()<=4.5) {
-    //   rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
-    //   myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-    //   intakeRight.set(intakePote);
-    //   pivotPIDsetpoint = -100;
-    //   pivotSwitchPID = true;
-    // }
-    // else if (cronos.get()<=5.5){//un segundo para avanzar
-    //   rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
-    //   myRobot.driveCartesian(0.5, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-    //   shooterRight.stopMotor();
-    //   intakeRight.stopMotor();
-    // }
-    // else if (cronos.get()<=6) {
-    //   myRobot.stopMotor();
-    // }
-
-
-    //  if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
-    // pivotPote = MathUtil.clamp(pivotPote, 0, 1);
-    // } 
-    // else if (pivotRotacion <= pivotLimiteInferior){
-    // pivotPote = MathUtil.clamp(pivotPote, -1, 0);
-    // }
-
-    // if(pivotSwitchPID){
-    // pivotPote = -pivotPID.calculate(pivotRotacion, pivotPIDsetpoint);
-    // pivotPote = MathUtil.clamp(pivotPote, -pivotPotePID, pivotPotePID);
-    // } 
-    // pivotRight.set(pivotPote);
-    break;
+    
 
       default:
       break;
@@ -792,19 +733,17 @@ if (cronos.get()<=2) {
    }
   
 
-    
-    
-
 
   @Override
   public void teleopInit() {
 
+    //Cambiar modo neutral de motores a modo Brake.
     rearLeft.setNeutralMode(NeutralMode.Brake);
     rearRight.setNeutralMode(NeutralMode.Brake);
     frontLeft.setNeutralMode(NeutralMode.Brake);
     frontRight.setNeutralMode(NeutralMode.Brake);
 
-    pivotSwitchPID = false;
+    pivotSwitchPID = false; //Apagar PID del Pivot para poderlo mover.
 
     ally = DriverStation.getAlliance(); //obtener alianza
 
@@ -830,49 +769,37 @@ if (cronos.get()<=2) {
 
   @Override
   public void teleopPeriodic() {
-    // se ejecuta constantemente en modo teleoperado
-    // que la primera parte sea de recolección de datos (actualizar
-    // datos de variables), clasificando estas.
-
-    //CHASSIS
+    
+    //Obtener datos del Dashboard 
     chassisPote = SmartDashboard.getNumber("Potencia", 0);
     fod = SmartDashboard.getBoolean("FOD", fod);
 
-    //MECANISMOS
     intakePote = SmartDashboard.getNumber("Potencia intake", 0);
     shooterPote = SmartDashboard.getNumber("Potencia shooter", 0);
     shooterAmpPote = SmartDashboard.getNumber("Potencia shooter amp", 0);
     pivotPote = SmartDashboard.getNumber("Potencia pivot", 0);
     climberPote = SmartDashboard.getNumber("Potencia climber", 0);
-    pivotPotePID = SmartDashboard.getNumber("Potencia Pivot PID", 0.5);
+    pivotPotePID = SmartDashboard.getNumber("Potencia Pivot PID", 0);
     pivotLimiteSuperior = SmartDashboard.getNumber("Pivot Limite Superior", 0);
     pivotLimiteInferior = SmartDashboard.getNumber("Pivot Limite Inferior", 0);
     climberLimiteSuperior = SmartDashboard.getNumber("Climber Limite Superior", 0);
     climberLimiteInferior = SmartDashboard.getNumber("Climber Limite Inferior", 0);
    
-    //valores desde el control
-    des_x = -control.getLeftY() * chassisPote; //de default viene multiplicado por la potencia
+    //Obtener valores del joystick de control de chasis con un multiplicador de la potencia maxima.
+    des_x = -control.getLeftY() * chassisPote; 
     des_y = control.getLeftX() * chassisPote;
     rot = -control.getRightX() * chassisPote;
     angulosChassis = control.getPOV();
 
-    // valores encoders
-    pivotRotacion = -pivotEncoder.getPosition(); //se obtiene valor del enconder, el negativo es para invertir la posición
+    // Obtener valores de los encoders de pivot y climber.
+    pivotRotacion = -pivotEncoder.getPosition(); 
     climberRotacion = -climberEncoder.getPosition();
 
-    //DASHBOARD
-    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); //posteriormente se pone en el dashboard para poder ver en que posición está
+    //Envio de valores de los encoders al dashboard.
+    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
 
-
-//SETPOINT MANEJO
-
-    // if (control.getR3Button()) {
-    //   rot = chassisPID.calculate(navx.getYaw(), 0);
-    // }
-
-
-    //FOD
+    //intercambiar modo de manejo entre FOD y NORMAL.
     if (fod) {
          
       //POV
@@ -883,7 +810,7 @@ if (cronos.get()<=2) {
           rot = -chassisPID.calculate(navx.getYaw(), angulosChassis);
         }
 
-        myRobot.driveCartesian(des_x, des_y, rot, Rotation2d.fromDegrees(navx.getAngle())); //manejo con navx
+        myRobot.driveCartesian(des_x, des_y, rot, Rotation2d.fromDegrees(navx.getAngle())); //manejo con navx FOD
        
     } else {
 
@@ -892,13 +819,12 @@ if (cronos.get()<=2) {
     }
 
 
-//RESETEO DE NAVX
-
+//Reset Manual de Navx Para ordenar orientacion del robot.
     if (control.getOptionsButtonPressed()) { 
       navx.reset(); 
     }
 
-// INTAKE
+// Control del Intake
 
   if (control.getR2Button() || operador.getRawAxis(3) > 0.5){ // Succionar
      intakePote = intakePote;
@@ -908,36 +834,33 @@ if (cronos.get()<=2) {
       intakePote = -intakePote;
     }
   else {
-      intakePote = 0;
+      intakePote = 0; //Si no se presiona nada se detiene el motor.
     }
     intakeRight.set(intakePote); //solo se declara una vez el "set", en el if lo que cambia es la variable de potencia
 
 //SHOOTER
 
-  if (pivotRotacion > 0) {
+  if (pivotRotacion > 0) {   //Cambio de potencia cuando esta en posicion de AMP.
       shooterPote = shooterAmpPote;
     }
   else{
     shooterPote = shooterPote;
     }
 
-  if (control.getSquareButton() && control.getL3Button()==true || operador.getRawButton(3) && operador.getRawButton(9)==true){ //
+  if (control.getSquareButton() && control.getL3Button()==true || operador.getRawButton(3) && operador.getRawButton(9)==true){ //Regresar
       shooterPote = -shooterPote;
     } 
-  else if (control.getSquareButton()&& control.getL3Button()==false || operador.getRawButton(3)&& operador.getRawButton(9)==false){
+  else if (control.getSquareButton()&& control.getL3Button()==false || operador.getRawButton(3)&& operador.getRawButton(9)==false){ //Lanzar
       shooterPote = shooterPote;
     }
   else {
       shooterPote = 0;
     }
   
-  //Shooter automático
- 
-
-    shooterRight.set(shooterPote);
+   shooterRight.set(shooterPote);
     
 
-  //PIVOT
+  //Control de Pivot Automatico con PID
 
   if ((control.getCrossButtonPressed() || operador.getRawButtonPressed(1))) {
     pivotPIDsetpoint = pivotLimiteInferior;
@@ -951,18 +874,21 @@ if (cronos.get()<=2) {
     pivotPIDsetpoint = -92;
     pivotSwitchPID = true;
     }
-  if (control.getTriangleButton() || operador.getRawButtonPressed(4)) {
-    pivotPIDsetpoint = pivotLimiteSuperior;
-    pivotSwitchPID = true;
+    if (control.getTriangleButton() || operador.getRawButtonPressed(4)) {
+      pivotPIDsetpoint = pivotLimiteSuperior;
+      pivotSwitchPID = true;
     }
    
-  if (control.getR1Button() || operador.getRawButton(6)){ //SUBE
+    //Control de Pivot Manual sin PID
+    if (control.getR1Button() || operador.getRawButton(6)) { //SUBE
+    pivotSwitchPID = false;
     pivotPote = -pivotPote;
-    pivotSwitchPID = false;
+    
     }  
-  else if (control.getL1Button() || operador.getRawButton(5)) { //BAJA
-    pivotPote = pivotPote; //no es necesario cambiarla
+    else if (control.getL1Button() || operador.getRawButton(5)) { //BAJA
     pivotSwitchPID = false;
+    pivotPote = pivotPote; //no es necesario cambiarla
+    
     } 
   else {
     pivotPote = 0;
@@ -982,7 +908,7 @@ if (cronos.get()<=2) {
 
   pivotRight.set(pivotPote);
 
-  //CLIMBER
+  //Control de Climbers se necesitan mover las 2 palancas.
  
   if (operador.getRawAxis(1) < -0.5  && operador.getRawAxis(5) < -0.5) {
     climberPote = -climberPote;
@@ -1003,23 +929,9 @@ if (cronos.get()<=2) {
 
   climberRight.set(climberPote);
 
-  // climberRight.set(climberPote);
-
-  //   pivotRight.set(-pivotPote);
-  //   }
-  // else if (control.getL1Button()){ //
-  //   pivotRight.set(pivotPote);
-  // }
-  // else {
-  //   pivotRight.stopMotor();
-  // }
-
-
+  //======================================================Control de LEDS para Eng Game ===========================================
   tiempoMatch = DriverStation.getMatchTime();
-  // System.out.println(tiempoMatch);
-
-  // leds
-  
+    
   if (tiempoMatch < 10 && tiempoMatch != -1) {
      if ((999 - tiempoMatch) - tiempoAnterior >= intervaloLeds) {
       tiempoAnterior = 999 - tiempoMatch;
@@ -1071,11 +983,9 @@ if (cronos.get()<=2) {
 }
   
 
-  
-
   }
 
-
+   //Si el robot esta deshabilitado poner chasis en Modo COAST para poderlo mover.
   @Override
   public void disabledInit() {
     rearLeft.setNeutralMode(NeutralMode.Coast);
@@ -1084,7 +994,7 @@ if (cronos.get()<=2) {
     frontRight.setNeutralMode(NeutralMode.Coast);
   }
 
-
+  //Poner leds en arcoiris cuando esta el robot deshabilitado.
   @Override
   public void disabledPeriodic() {
 
