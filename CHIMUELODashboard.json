@@ -115,15 +115,11 @@
               1
             ],
             "content": {
-              "_type": "Gyro",
+              "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Rotacion pivot",
               "_title": "Rotacion pivot",
               "_glyph": 148,
-              "_showGlyph": false,
-              "Visuals/Major tick spacing": 45.0,
-              "Visuals/Starting angle": 180.0,
-              "Visuals/Show tick mark ring": true,
-              "Visuals/Counter clockwise": false
+              "_showGlyph": false
             }
           },
           "10,2": {
@@ -431,6 +427,45 @@
               "Colors/Color when true": "#7CFC00FF",
               "Colors/Color when false": "#8B0000FF"
             }
+          },
+          "4,5": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Out Pivot",
+              "_title": "Out Pivot",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "2,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/SP Pivot",
+              "_title": "SP Pivot",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "3,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Sensor Pivot",
+              "_title": "Sensor Pivot",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }
@@ -447,12 +482,50 @@
         "titleType": 0,
         "tiles": {}
       }
+    },
+    {
+      "title": "PIDs",
+      "autoPopulate": false,
+      "autoPopulatePrefix": "",
+      "widgetPane": {
+        "gridSize": 64.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "7,2": {
+            "size": [
+              8,
+              6
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/SP Pivot",
+              "_source1": "network_table:///SmartDashboard/Sensor Pivot",
+              "_source2": "network_table:///SmartDashboard/Out Pivot",
+              "_title": "SmartDashboard/SP Pivot",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Graph/Visible time": 30.0,
+              "Graph/X-axis auto scrolling": true,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Y-axis/Unit": "ul",
+              "Visible data/SmartDashboard/Out Pivot": true,
+              "Visible data/SmartDashboard/SP Pivot": true,
+              "Visible data/SmartDashboard/Sensor Pivot": true
+            }
+          }
+        }
+      }
     }
   ],
   "windowGeometry": {
-    "x": 1912.0,
-    "y": -8.0,
-    "width": 1696.0,
+    "x": 1911.0,
+    "y": 0.0,
+    "width": 1697.0,
     "height": 1026.0
   }
 }

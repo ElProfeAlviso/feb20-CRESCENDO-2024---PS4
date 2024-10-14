@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.SPI; //Libreria para conectar el gyroscopio en el p
 
 //Librerias para sensores 
 import edu.wpi.first.wpilibj.DigitalInput; //Libreria para usar entradas digitales.
+import edu.wpi.first.wpilibj.DutyCycleEncoder; //Libreria para encoder absoluto.
 import edu.wpi.first.cameraserver.CameraServer; //Libreria para enviar la imagen de la web cam al dashboard.
 
 //limelight Librerias para obtener datos de posicion de la camara Lime Light.
@@ -78,6 +79,10 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 */
 
 public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
+
+  DutyCycleEncoder pivotAbsEncoder;
+  Double pivotAbsPosition;
+  Double pivotAbsPositionGrados;
 
   DigitalInput LimitSwitchPivotdown; //Sensor infrarojo de deteccion de pivot abajo
   DigitalInput LimitSwitchPivotup;   //Sensor infrarojo de deteccion de pivot arriba
@@ -146,7 +151,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
   static final double pivotkP = 0.02;
   static final double pivotkI = 0.00;
-  static final double pivotkD = 0.00;
+  static final double pivotkD = 0.001;
   static final double pivotkToleranceDegrees = 2.0f;
  
  
@@ -183,6 +188,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   NetworkTableEntry tx = table.getEntry("tx");
   NetworkTableEntry ty = table.getEntry("ty");
   NetworkTableEntry ta = table.getEntry("ta");
+  NetworkTableEntry tv = table.getEntry("tv");
 
   // Variables para control de tiras led direccionables NeoPixel.
   AddressableLED m_led; //Creacion de objeto de la tira de leds
@@ -199,6 +205,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   @Override
   public void robotInit() {// Construir todos los objetos con sus puertos y valores iniciales.
 
+    pivotAbsEncoder = new DutyCycleEncoder(3);
+    
     //Declaracion de sensores Digitales
     LimitSwitchPivotdown = new DigitalInput(0);  //Sensor infrarojo conectado en DIO 0
     LimitSwitchPivotup = new DigitalInput(1);    // Sensor infrarojo conectado en DIO 1
@@ -291,6 +299,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putNumber("Climber Limite Inferior", 10);
     SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
+    SmartDashboard.putNumber("Angulo Pivot", 0);
+
    
     CameraServer.startAutomaticCapture(); //Inicia transmision de webcam.
 
@@ -306,15 +316,21 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
   @Override
   public void robotPeriodic() {
+
+    pivotAbsPosition = pivotAbsEncoder.get();
+    pivotAbsPositionGrados = pivotAbsPosition * 360;
+
     //Obtener valores de la limelight.
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
+    double target = tv.getDouble(0.0);
 
     //Envia los valores de la deteccion de la limelight al Dashboard.
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
+    
 
     //Envia los valores de voltaje y angulo del chasis al dashboard.
     SmartDashboard.putNumber("Voltaje", RobotController.getBatteryVoltage());
@@ -328,6 +344,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putBoolean("Pivot abajo", LimitSwitchPivotAbajo);
     SmartDashboard.putBoolean("Pivot arriba", LimitSwitchPivotArriba);
     SmartDashboard.putBoolean("Nota Detectada", LimitSwitchNoteDetected);
+    SmartDashboard.putNumber("Angulo Pivot", pivotAbsPositionGrados);
    }
 
 
@@ -386,7 +403,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     climberRotacion = -climberEncoder.getPosition();
 
     //Se envia los valores de los encoders al Dashboard.
-    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); 
+    SmartDashboard.putNumber("Rotacion pivot", (int)pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
 
   switch (autoSelectInt) { //Variable de seleccion de autonomo.
@@ -796,7 +813,7 @@ if (cronos.get()<=2) {
     climberRotacion = -climberEncoder.getPosition();
 
     //Envio de valores de los encoders al dashboard.
-    SmartDashboard.putNumber("Rotacion pivot", pivotRotacion); 
+    SmartDashboard.putNumber("Rotacion pivot", (int)pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
 
     //intercambiar modo de manejo entre FOD y NORMAL.
@@ -826,7 +843,7 @@ if (cronos.get()<=2) {
 
 // Control del Intake
 
-  if (control.getR2Button() || operador.getRawAxis(3) > 0.5){ // Succionar
+  if ( (control.getR2Button() || operador.getRawAxis(3) > 0.5) || (LimitSwitchPivotAbajo && !LimitSwitchNoteDetected) ){ // Succionar
      intakePote = intakePote;
     }
   else if
@@ -894,19 +911,25 @@ if (cronos.get()<=2) {
     pivotPote = 0;
     }
 
-  if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+  if ((pivotRotacion >= pivotLimiteSuperior  ) || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-  else if (pivotRotacion <= pivotLimiteInferior){
+  else if ((pivotRotacion <= pivotLimiteInferior ) || (LimitSwitchPivotAbajo) ){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
   if(pivotSwitchPID){
     pivotPote = -pivotPID.calculate(pivotRotacion, pivotPIDsetpoint);
     pivotPote = MathUtil.clamp(pivotPote, -pivotPotePID, pivotPotePID);
+
     } 
 
-  pivotRight.set(pivotPote);
+    pivotRight.set(pivotPote);
+  
+    SmartDashboard.putNumber("SP Pivot", pivotPIDsetpoint);
+    SmartDashboard.putNumber("Sensor Pivot", (int)pivotRotacion);
+    SmartDashboard.putNumber("Out Pivot", pivotPote);
+
 
   //Control de Climbers se necesitan mover las 2 palancas.
  
