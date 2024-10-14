@@ -111,7 +111,7 @@
           },
           "2,2": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
@@ -165,21 +165,17 @@
               "Visuals/Counter clockwise": false
             }
           },
-          "2,4": {
+          "3,2": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
-              "_type": "Gyro",
+              "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Rotacion climber",
               "_title": "Rotacion climber",
               "_glyph": 148,
-              "_showGlyph": false,
-              "Visuals/Major tick spacing": 45.0,
-              "Visuals/Starting angle": 180.0,
-              "Visuals/Show tick mark ring": true,
-              "Visuals/Counter clockwise": false
+              "_showGlyph": false
             }
           },
           "10,0": {
@@ -465,6 +461,23 @@
               "_title": "Sensor Pivot",
               "_glyph": 148,
               "_showGlyph": false
+            }
+          },
+          "2,4": {
+            "size": [
+              2,
+              2
+            ],
+            "content": {
+              "_type": "Gyro",
+              "_source0": "network_table:///SmartDashboard/Angulo Pivot",
+              "_title": "Angulo Pivot",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Visuals/Major tick spacing": 30.0,
+              "Visuals/Starting angle": 90.0,
+              "Visuals/Show tick mark ring": true,
+              "Visuals/Counter clockwise": true
             }
           }
         }
