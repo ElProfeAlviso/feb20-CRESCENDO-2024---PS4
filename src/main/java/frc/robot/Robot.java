@@ -190,6 +190,14 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   NetworkTableEntry ta = table.getEntry("ta");
   NetworkTableEntry tv = table.getEntry("tv");
 
+  PIDController PIDLimeLightGiro;
+  double kpLimeLightGiro = 0.1;
+  
+  double minGiroLimelight = 0.05;
+
+  PIDController PIDLimeLightAvance;
+  double kpLimeLightAvance = 0.1;
+
   // Variables para control de tiras led direccionables NeoPixel.
   AddressableLED m_led; //Creacion de objeto de la tira de leds
   AddressableLEDBuffer m_ledBuffer; //Buffer para almacenamiento de los colores que se enviaran a la tira
@@ -276,7 +284,12 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
     //Creacion del controlador PID del Pivot.
     pivotPID = new PIDController(pivotkP, pivotkI, pivotkD); // Parametros PID del controlador
-    pivotPID.setTolerance(pivotkToleranceDegrees);  // Establece la tolerancia minima para el error para que el PID no corrija valores muy pequeños.
+    pivotPID.setTolerance(pivotkToleranceDegrees); // Establece la tolerancia minima para el error para que el PID no corrija valores muy pequeños.
+    
+    PIDLimeLightGiro = new PIDController(0.1, 0, 0);
+    PIDLimeLightGiro.setTolerance(2);
+    PIDLimeLightAvance = new PIDController(0.1, 0, 0);
+    PIDLimeLightAvance.setTolerance(2);
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
@@ -287,14 +300,14 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putNumber("Potencia shooter", 0.7); //0.3 para amp
     SmartDashboard.putNumber("Potencia shooter amp", 0.3);
     SmartDashboard.putNumber("Potencia pivot", 0.7);
-    SmartDashboard.putNumber("Potencia Pivot PID", 0.6);
+    SmartDashboard.putNumber("Potencia Pivot PID", 0.65);
     SmartDashboard.putNumber("Potencia climber", 0.9);
     SmartDashboard.putNumber("rotar angulo", 45);
     SmartDashboard.putBoolean("FOD", true);
     SmartDashboard.putNumber("Rotacion pivot", 0);
     SmartDashboard.putNumber("Rotacion climber", 0);
-    SmartDashboard.putNumber("Pivot Limite Superior", 35);
-    SmartDashboard.putNumber("Pivot Limite Inferior", -130);
+    SmartDashboard.putNumber("Pivot Limite Superior", 50);
+    SmartDashboard.putNumber("Pivot Limite Inferior", -145);
     SmartDashboard.putNumber("Climber Limite Superior", 225);
     SmartDashboard.putNumber("Climber Limite Inferior", 10);
     SmartDashboard.putNumber("Seleccion de Autonomo", 0);
@@ -330,6 +343,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
+    SmartDashboard.putNumber("LimelightTarget", target);
     
 
     //Envia los valores de voltaje y angulo del chasis al dashboard.
@@ -786,6 +800,12 @@ if (cronos.get()<=2) {
 
   @Override
   public void teleopPeriodic() {
+
+
+    double x = tx.getDouble(0.0);
+    double y = ty.getDouble(0.0);
+    double area = ta.getDouble(0.0);
+    double target = tv.getDouble(0.0);
     
     //Obtener datos del Dashboard 
     chassisPote = SmartDashboard.getNumber("Potencia", 0);
@@ -843,7 +863,7 @@ if (cronos.get()<=2) {
 
 // Control del Intake
 
-  if ( (control.getR2Button() || operador.getRawAxis(3) > 0.5) || (LimitSwitchPivotAbajo && !LimitSwitchNoteDetected) ){ // Succionar
+  if ( (control.getR2Button() || operador.getRawAxis(3) > 0.5)){ // Succionar
      intakePote = intakePote;
     }
   else if
@@ -1038,7 +1058,29 @@ if (cronos.get()<=2) {
 
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+
+    double x = tx.getDouble(0.0);
+    double y = ty.getDouble(0.0);
+    double area = ta.getDouble(0.0);
+    double target = tv.getDouble(0.0);
+
+    if (target == 1) {
+      double PIDLimeOutGiro = PIDLimeLightGiro.calculate(x, 0);
+      double PIDLimeOutAvance = -PIDLimeLightAvance.calculate(area, 3);
+
+      myRobot.driveCartesian( PIDLimeOutAvance, 0, PIDLimeOutGiro);
+
+    } else {
+
+      myRobot.stopMotor();
+    }
+      
+
+
+    
+
+  }
 
 
 }
