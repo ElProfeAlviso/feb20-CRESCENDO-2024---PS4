@@ -320,8 +320,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     
     PIDLimeLightGiro = new PIDController(0.03, 0, 0.001);
     PIDLimeLightGiro.setTolerance(1);
-    PIDLimeLightAvance = new PIDController(0.3, 0, 0.001);
-    PIDLimeLightAvance.setTolerance(1);
+    PIDLimeLightAvance = new PIDController(0.6, 0, 0.001);
+    PIDLimeLightAvance.setTolerance(0.1);
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
@@ -342,7 +342,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
-    SmartDashboard.putNumber("Posicion Tiro", -92);
+    SmartDashboard.putNumber("Posicion Tiro", -65);
 
    
     UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
@@ -1128,11 +1128,11 @@ if (cronos.get()<=2) {
         }
         
         
-        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 1),-0.8,0.8);
+        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3),-0.8,0.8);
 
         myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
 
-        if (Math.abs(x) <= 1 && Math.abs(area) <= 2) {
+        if (Math.abs(x) <= 2 && Math.abs(area) <= 1) {
          
           shooterTime.start();
           shooterPote = shooterPote;
