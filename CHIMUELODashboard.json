@@ -96,7 +96,7 @@
               "Visuals/Display value": true
             }
           },
-          "4,0": {
+          "3,3": {
             "size": [
               1,
               1
@@ -122,28 +122,28 @@
               "_showGlyph": false
             }
           },
-          "10,2": {
+          "9,3": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Pivot Limite Superior",
-              "_title": "Pivot Limite Superior",
+              "_title": "PivLim Superior",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "10,3": {
+          "9,4": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Pivot Limite Inferior",
-              "_title": "Pivot Limite Inferior",
+              "_title": "Piv Lim Inferior",
               "_glyph": 148,
               "_showGlyph": false
             }
@@ -151,7 +151,7 @@
           "2,0": {
             "size": [
               2,
-              1
+              2
             ],
             "content": {
               "_type": "Gyro",
@@ -178,7 +178,7 @@
               "_showGlyph": false
             }
           },
-          "10,0": {
+          "7,3": {
             "size": [
               2,
               1
@@ -191,7 +191,7 @@
               "_showGlyph": false
             }
           },
-          "10,1": {
+          "7,4": {
             "size": [
               2,
               1
@@ -204,10 +204,10 @@
               "_showGlyph": false
             }
           },
-          "5,0": {
+          "4,0": {
             "size": [
-              5,
-              4
+              4,
+              3
             ],
             "content": {
               "_type": "Camera Stream",
@@ -219,7 +219,7 @@
               "Crosshair/Crosshair color": "#FFFFFFFF",
               "Controls/Show controls": true,
               "Controls/Rotation": "NONE",
-              "compression": -1.0,
+              "compression": 54.0,
               "fps": -1,
               "imageWidth": -1,
               "imageHeight": -1
@@ -233,7 +233,7 @@
             "content": {
               "_type": "Voltage View",
               "_source0": "network_table:///SmartDashboard/Voltaje",
-              "_title": "SmartDashboard/Voltaje",
+              "_title": "Voltaje",
               "_glyph": 148,
               "_showGlyph": false,
               "Range/Min": 11.0,
@@ -260,33 +260,7 @@
               "Visuals/Display value": true
             }
           },
-          "5,4": {
-            "size": [
-              3,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Seleccion de Autonomo",
-              "_title": "Seleccion de Autonomo",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "9,5": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/LimelightY",
-              "_title": "LimelightY",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "8,5": {
+          "7,5": {
             "size": [
               1,
               1
@@ -299,46 +273,7 @@
               "_showGlyph": false
             }
           },
-          "8,4": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Segundos rotar",
-              "_title": "Segundos rotar",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "9,4": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Segundos navx",
-              "_title": "Segundos navx",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "10,4": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/rotar angulo",
-              "_title": "rotar angulo",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "10,5": {
+          "8,5": {
             "size": [
               1,
               1
@@ -351,7 +286,7 @@
               "_showGlyph": false
             }
           },
-          "4,1": {
+          "2,3": {
             "size": [
               1,
               1
@@ -364,7 +299,7 @@
               "_showGlyph": false
             }
           },
-          "4,2": {
+          "4,5": {
             "size": [
               1,
               1
@@ -379,21 +314,6 @@
               "Colors/Color when false": "#8B0000FF"
             }
           },
-          "12,3": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Boolean Box",
-              "_source0": "network_table:///SmartDashboard/Pivot arriba",
-              "_title": "Pivot arriba",
-              "_glyph": 148,
-              "_showGlyph": false,
-              "Colors/Color when true": "#7CFC00FF",
-              "Colors/Color when false": "#8B0000FF"
-            }
-          },
           "4,3": {
             "size": [
               1,
@@ -402,7 +322,7 @@
             "content": {
               "_type": "Boolean Box",
               "_source0": "network_table:///SmartDashboard/Pivot arriba",
-              "_title": "SmartDashboard/Pivot arriba",
+              "_title": "Pivot arriba",
               "_glyph": 148,
               "_showGlyph": false,
               "Colors/Color when true": "#7CFC00FF",
@@ -424,20 +344,7 @@
               "Colors/Color when false": "#8B0000FF"
             }
           },
-          "4,5": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Out Pivot",
-              "_title": "Out Pivot",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "2,3": {
+          "5,5": {
             "size": [
               1,
               1
@@ -450,7 +357,7 @@
               "_showGlyph": false
             }
           },
-          "3,3": {
+          "6,5": {
             "size": [
               1,
               1
@@ -480,43 +387,78 @@
               "Visuals/Counter clockwise": true
             }
           },
-          "2,1": {
+          "9,5": {
             "size": [
               1,
               1
             ],
             "content": {
               "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/limelight_Interface",
-              "_title": "limelight_Interface",
+              "_source0": "network_table:///SmartDashboard/LimelightTarget",
+              "_title": "LimelightTarget",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "3,1": {
+          "5,3": {
             "size": [
-              1,
+              2,
               1
             ],
             "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/limelight_Stream",
-              "_title": "limelight_Stream",
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Seleccion Autonomo",
+              "_title": "Seleccion Autonomo",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "11,4": {
+          "5,4": {
             "size": [
-              1,
+              2,
               1
             ],
             "content": {
               "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/limelight_PipelineName",
-              "_title": "limelight_PipelineName",
+              "_source0": "network_table:///SmartDashboard/Posicion Tiro",
+              "_title": "Posicion Tiro",
               "_glyph": 148,
               "_showGlyph": false
+            }
+          },
+          "10,3": {
+            "size": [
+              3,
+              3
+            ],
+            "content": {
+              "_type": "Mecanum Drivebase",
+              "_source0": "network_table:///SmartDashboard/Mecanum Chasis",
+              "_title": "/SmartDashboard/Mecanum Chasis",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Visuals/Show velocity vectors": true
+            }
+          },
+          "8,0": {
+            "size": [
+              4,
+              3
+            ],
+            "content": {
+              "_type": "Camera Stream",
+              "_source0": "camera_server://limelight",
+              "_title": "limelight",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Crosshair/Show crosshair": true,
+              "Crosshair/Crosshair color": "#FFFFFFFF",
+              "Controls/Show controls": true,
+              "Controls/Rotation": "NONE",
+              "compression": -1.0,
+              "fps": -1,
+              "imageWidth": -1,
+              "imageHeight": -1
             }
           }
         }
@@ -564,72 +506,24 @@
               "Y-axis/Automatic bounds": true,
               "Y-axis/Upper bound": 1.0,
               "Y-axis/Lower bound": -1.0,
-              "Y-axis/Unit": "ul"
+              "Y-axis/Unit": "ul",
+              "Visible data/SmartDashboard/Out Pivot": true,
+              "Visible data/SmartDashboard/SP Pivot": true,
+              "Visible data/SmartDashboard/Sensor Pivot": true
             }
           },
-          "8,1": {
+          "12,6": {
             "size": [
-              2,
-              2
+              6,
+              4
             ],
             "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///limelight/tv",
-              "_title": "limelight/tv",
+              "_type": "Mecanum Drivebase",
+              "_source0": "network_table:///SmartDashboard/Mecanum Chasis",
+              "_title": "/SmartDashboard/Mecanum Chasis",
               "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "8,3": {
-            "size": [
-              2,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///limelight/tx",
-              "_title": "limelight/tx",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "8,5": {
-            "size": [
-              2,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///limelight/ty",
-              "_title": "limelight/ty",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "8,7": {
-            "size": [
-              2,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///limelight/ta",
-              "_title": "limelight/ta",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "8,9": {
-            "size": [
-              2,
-              2
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///limelight/tid",
-              "_title": "limelight/tid",
-              "_glyph": 148,
-              "_showGlyph": false
+              "_showGlyph": false,
+              "Visuals/Show velocity vectors": true
             }
           }
         }
@@ -637,9 +531,9 @@
     }
   ],
   "windowGeometry": {
-    "x": 1911.0,
-    "y": 0.0,
-    "width": 1697.0,
+    "x": 1912.0,
+    "y": -8.0,
+    "width": 1696.0,
     "height": 1026.0
   }
 }

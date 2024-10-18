@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot; //Framework de un robot tipo Iterativo 
 import edu.wpi.first.wpilibj.drive.MecanumDrive; //Libreria de control de un chasis tipo mecanum Drive.
 import edu.wpi.first.wpilibj.RobotController; //Libreria de obtencion de datos del controlador roborio.
 import edu.wpi.first.wpilibj.DriverStation; //Libreria para obtener datos del software de Driver Station.
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard; //Libreria para enviar y recibir datos desde y hacia el Shuffleboard.
 import edu.wpi.first.wpilibj.Timer; //Libreria para crear timers (Cronometros)
 import edu.wpi.first.wpilibj.DriverStation.Alliance; //Libreria para obtener el color de alianza desde la cancha.
@@ -38,7 +39,7 @@ import edu.wpi.first.wpilibj.SPI; //Libreria para conectar el gyroscopio en el p
 import edu.wpi.first.wpilibj.DigitalInput; //Libreria para usar entradas digitales.
 import edu.wpi.first.wpilibj.DutyCycleEncoder; //Libreria para encoder absoluto.
 import edu.wpi.first.cameraserver.CameraServer; //Libreria para enviar la imagen de la web cam al dashboard.
-
+import edu.wpi.first.cscore.UsbCamera;
 //limelight Librerias para obtener datos de posicion de la camara Lime Light.
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -74,15 +75,17 @@ import edu.wpi.first.networktables.NetworkTableInstance;
     Pivot Abajo DIO 0
     Pivot Arriba DIO 1
     Nota detectada DIO 2
-
-    -100 posición para shooter
+    Encoder Absoluto DIO 3
+    
 */
 
 public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
-  DutyCycleEncoder pivotAbsEncoder;
-  Double pivotAbsPosition;
-  Double pivotAbsPositionGrados;
+  double PIDLimeOutGiro;
+  double PIDLimeOutAvance;
+  DutyCycleEncoder pivotAbsEncoder; //Variable para DIO Sensor absoluto del pivot.
+  Double pivotAbsPosition;          //Lectura de sensor en revolucion 0-1
+  Double pivotAbsPositionGrados;    //Lectura del sensor en grados 0-360
 
   DigitalInput LimitSwitchPivotdown; //Sensor infrarojo de deteccion de pivot abajo
   DigitalInput LimitSwitchPivotup;   //Sensor infrarojo de deteccion de pivot arriba
@@ -92,7 +95,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   boolean LimitSwitchPivotArriba;     //Variable para guardar el estado del sensor de pivot arriba
   boolean LimitSwitchNoteDetected;    //Variable para guardar el estado de la nota en el intake.
 
-  Timer cronos;  //Timer para iniciar un cronometro de tiempo  para control de autonomos por tiempo.
+  Timer cronos; //Timer para iniciar un cronometro de tiempo  para control de autonomos por tiempo.
+  Timer shooterTime;
 
   PS4Controller control;   //Crear el control de operador de chasis.
   GenericHID operador;     //Crear el control de operador de mecanismos.
@@ -108,10 +112,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
  
   double rotatcionAutonomo; //Variable para guardar el calculo de PID de rotacion en autonomos.
  
-  // PRUEBAS
-  double sega; //segundos para avanzar (pruebas)
-  double segnavx; //segundo en el que activa la navx (prueba)
-  double rotar;//segundos que rota (prueba)
+  
  
  
   //Creacion de objetos de motores del chasis con controlador VictorSPX y motores CIM.
@@ -156,6 +157,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
  
  
   //Variables utilizaras para enviar o recibir datos desde el Dashboard.
+
+  
   double chassisPote; //Potencia maxima del chasis
   boolean fod;        //Habilitar o deshabilitar el control Field Oriented Drive.
 
@@ -166,7 +169,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
   double pivotPote;   //Potencia Maxima del Pivot en modo manual
   double pivotLimiteInferior;  //Limite inferior del encoder del pivot
-  double pivotLimiteSuperior;  //Limite superior del encoder del pivot.
+  double pivotLimiteSuperior; //Limite superior del encoder del pivot.
+  double pivotPosicionTiro; // Variable para guardar la posicion de tiro del pivot
 
   double climberPote;          //Potencia Maxima del Climber
   double climberLimiteInferior; //Limite inferior del Climber
@@ -190,13 +194,14 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   NetworkTableEntry ta = table.getEntry("ta");
   NetworkTableEntry tv = table.getEntry("tv");
 
-  PIDController PIDLimeLightGiro;
-  double kpLimeLightGiro = 0.1;
+  //PID para Apunte automatico.
+  PIDController PIDLimeLightGiro; //PID para controlar giro respecto a tx de Limelight
+  double kpLimeLightGiro ;   //Proporcional de PID de limelight
   
-  double minGiroLimelight = 0.05;
+  double minGiroLimelight = 0.05;  //Potencia minima para mover el chasis.
 
-  PIDController PIDLimeLightAvance;
-  double kpLimeLightAvance = 0.1;
+  PIDController PIDLimeLightAvance; //PID para controlar rango de tiro usando Limelight.
+  double kpLimeLightAvance ;   //Proporcional de giro usando limelight.
 
   // Variables para control de tiras led direccionables NeoPixel.
   AddressableLED m_led; //Creacion de objeto de la tira de leds
@@ -207,13 +212,37 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   boolean ledBlink = true; //Activar o desactivar el parpadeo de leds.
   int m_rainbowFirstPixelHue; //Almacena el tono de color en modo (Hue, Saturation, Lightness)
 
+  //Seleccion de lista de autonomos.
+  private static final String kDefaultAuto = "Sin Autonomo";
+  private static final String kAzulIzquierdaAuto = "Azul Izquierda";
+  private static final String kAzulCentroAuto = "Azul Centro";
+  private static final String kAzulDerechaAuto = "Azul Derecha";
+  private static final String kRojoIzquierdaAuto = "Rojo Izquierda";
+  private static final String kRojoCentroAuto = "Rojo Centro";
+  private static final String kRojoDerechaAuto = "Rojo Derecha";
+
+  private String m_autoSelected;
+  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+
   
 
 
   @Override
   public void robotInit() {// Construir todos los objetos con sus puertos y valores iniciales.
 
-    pivotAbsEncoder = new DutyCycleEncoder(3);
+    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
+    m_chooser.addOption("Azul Izquierda", kAzulIzquierdaAuto);
+    m_chooser.addOption("Azul Centro", kAzulCentroAuto);
+    m_chooser.addOption("Azul Derecha", kAzulDerechaAuto);
+    m_chooser.addOption("Rojo Izquierda", kRojoIzquierdaAuto);
+    m_chooser.addOption("Rojo Centro", kRojoCentroAuto);
+    m_chooser.addOption("Rojo Derecha", kRojoDerechaAuto);
+
+    SmartDashboard.putData("Seleccion Autonomo", m_chooser);
+
+
+
+    pivotAbsEncoder = new DutyCycleEncoder(3); //Constructor de Encoder absoluto del pivot.
     
     //Declaracion de sensores Digitales
     LimitSwitchPivotdown = new DigitalInput(0);  //Sensor infrarojo conectado en DIO 0
@@ -221,6 +250,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     LimitSwitchNote = new DigitalInput(2);       // Sensor infrarojo conectado en DIO 2
   
     cronos = new Timer(); //Nuevo timer para cronometrar tiempo de autonomo.
+    shooterTime = new Timer();
 
     //Asignacion de IDS de red CAN a motores del Chasis con controladores VictorSPX y motores CIM.
     rearRight = new WPI_VictorSPX(2);
@@ -285,24 +315,23 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     //Creacion del controlador PID del Pivot.
     pivotPID = new PIDController(pivotkP, pivotkI, pivotkD); // Parametros PID del controlador
     pivotPID.setTolerance(pivotkToleranceDegrees); // Establece la tolerancia minima para el error para que el PID no corrija valores muy pequeños.
+
+    //Controlador PID de apunte automatico con limelight.
     
-    PIDLimeLightGiro = new PIDController(0.1, 0, 0);
-    PIDLimeLightGiro.setTolerance(2);
-    PIDLimeLightAvance = new PIDController(0.1, 0, 0);
-    PIDLimeLightAvance.setTolerance(2);
+    PIDLimeLightGiro = new PIDController(0.03, 0, 0.001);
+    PIDLimeLightGiro.setTolerance(1);
+    PIDLimeLightAvance = new PIDController(0.3, 0, 0.001);
+    PIDLimeLightAvance.setTolerance(1);
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
     SmartDashboard.putNumber("Potencia", 0.8);
-    SmartDashboard.putNumber("Segundos rotar", 1);
-    SmartDashboard.putNumber("Segundos navx", 1.1);
     SmartDashboard.putNumber("Potencia intake", 0.8);
     SmartDashboard.putNumber("Potencia shooter", 0.7); //0.3 para amp
     SmartDashboard.putNumber("Potencia shooter amp", 0.3);
     SmartDashboard.putNumber("Potencia pivot", 0.7);
     SmartDashboard.putNumber("Potencia Pivot PID", 0.65);
     SmartDashboard.putNumber("Potencia climber", 0.9);
-    SmartDashboard.putNumber("rotar angulo", 45);
     SmartDashboard.putBoolean("FOD", true);
     SmartDashboard.putNumber("Rotacion pivot", 0);
     SmartDashboard.putNumber("Rotacion climber", 0);
@@ -310,12 +339,16 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putNumber("Pivot Limite Inferior", -145);
     SmartDashboard.putNumber("Climber Limite Superior", 225);
     SmartDashboard.putNumber("Climber Limite Inferior", 10);
-    SmartDashboard.putNumber("Seleccion de Autonomo", 0);
+    //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
+    SmartDashboard.putNumber("Posicion Tiro", -92);
 
    
-    CameraServer.startAutomaticCapture(); //Inicia transmision de webcam.
+    UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
+    camera.setResolution(320, 240);
+    camera.setFPS(15);
+
 
     // Configura la tira led Neopixel.
     m_led = new AddressableLED(0); //Indica el puerto PWM de la tira led.
@@ -330,8 +363,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   @Override
   public void robotPeriodic() {
 
-    pivotAbsPosition = pivotAbsEncoder.get();
-    pivotAbsPositionGrados = pivotAbsPosition * 360;
+    pivotAbsPosition = pivotAbsEncoder.get(); //Obtener los datos del encoder en revoluciones.
+    pivotAbsPositionGrados = pivotAbsPosition * 360; //Convertir a grados el encoder absoluto.
 
     //Obtener valores de la limelight.
     double x = tx.getDouble(0.0);
@@ -364,6 +397,11 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
   @Override
   public void autonomousInit() {
+
+
+    m_autoSelected = m_chooser.getSelected();
+    System.out.println("Auto selected: " + m_autoSelected);
+
     //Reset de cronometro y navx
     cronos.start();
     cronos.reset();
@@ -407,10 +445,9 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     pivotLimiteSuperior = SmartDashboard.getNumber("Pivot Limite Superior", 0);
     pivotLimiteInferior = SmartDashboard.getNumber("Pivot Limite Inferior", 0);
     intakePote = SmartDashboard.getNumber("Potencia intake", 0);
+    pivotPosicionTiro = SmartDashboard.getNumber("Posicion Tiro", 0);
     autoSelectInt = (int)autoSelec;
-    sega = SmartDashboard.getNumber("Segundos rotar", 0);
-    segnavx = SmartDashboard.getNumber("Segundos navx", 0);
-    rotar = SmartDashboard.getNumber("rotar angulo", 0);
+   
 
     // Obtener valores de los encoders de pivot y climber (Se invierte el giro del encoder por la posicion del motor)
     pivotRotacion = -pivotEncoder.getPosition(); 
@@ -420,26 +457,26 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     SmartDashboard.putNumber("Rotacion pivot", (int)pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
 
-  switch (autoSelectInt) { //Variable de seleccion de autonomo.
+  switch (m_autoSelected) { //Variable de seleccion de autonomo.
     //Autonomo que no hace nada solo para no usar el cero en el dashboard.
-    case 0:
+    case kDefaultAuto:
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       break;
 //Autonomo de lado azul izquierdo
-      case 1:
+      case kAzulIzquierdaAuto:
 
  if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
 
     }
@@ -447,7 +484,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
 
@@ -470,10 +507,10 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     }
     
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -486,26 +523,26 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
       break;
 //Autonomo de lado azul al centro
 
-      case 2:
+      case kAzulCentroAuto:
 
 if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=4.5) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=5.5){//un segundo para avanzar
@@ -519,10 +556,10 @@ if (cronos.get()<=2) {
     }
 
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -535,19 +572,19 @@ if (cronos.get()<=2) {
 
     break;
 
-      case 3:
+      case kAzulDerechaAuto:
 
 if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
 
     }
@@ -555,7 +592,7 @@ if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
 
@@ -578,10 +615,10 @@ if (cronos.get()<=2) {
     }
     
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -592,19 +629,19 @@ if (cronos.get()<=2) {
     pivotRight.set(pivotPote);
 
       break;
-        case 4:
+        case kRojoIzquierdaAuto:
 
         if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
 
     }
@@ -612,7 +649,7 @@ if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
 
@@ -635,10 +672,10 @@ if (cronos.get()<=2) {
     }
     
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -650,19 +687,19 @@ if (cronos.get()<=2) {
 
         break;
 
-        case 5:
+        case kRojoCentroAuto:
 
         if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
 
     }
@@ -670,7 +707,7 @@ if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=5.5){//un segundo para avanzar
@@ -684,10 +721,10 @@ if (cronos.get()<=2) {
     }
 
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba) ){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -698,19 +735,19 @@ if (cronos.get()<=2) {
     pivotRight.set(pivotPote);
 
         break;
-        case 6:
+        case kRojoDerechaAuto:
 
         if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
     else if (cronos.get()<=3) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.set(shooterPote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
 
     }
@@ -718,7 +755,7 @@ if (cronos.get()<=2) {
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       intakeRight.set(intakePote);
-      pivotPIDsetpoint = -92;
+      pivotPIDsetpoint = pivotPosicionTiro;
       pivotSwitchPID = true;
     }
 
@@ -741,10 +778,10 @@ if (cronos.get()<=2) {
     }
     
 
-     if (pivotRotacion >= pivotLimiteSuperior){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
+     if (pivotRotacion >= pivotLimiteSuperior || (LimitSwitchPivotArriba)){ //si el angulo del pivot es mayor que el limite superior, se hace una "abrazadera" que sólo lo permite ir hacia el lado contrario
     pivotPote = MathUtil.clamp(pivotPote, 0, 1);
     } 
-    else if (pivotRotacion <= pivotLimiteInferior){
+    else if (pivotRotacion <= pivotLimiteInferior || (LimitSwitchPivotAbajo)){
     pivotPote = MathUtil.clamp(pivotPote, -1, 0);
     }
 
@@ -821,6 +858,9 @@ if (cronos.get()<=2) {
     pivotLimiteInferior = SmartDashboard.getNumber("Pivot Limite Inferior", 0);
     climberLimiteSuperior = SmartDashboard.getNumber("Climber Limite Superior", 0);
     climberLimiteInferior = SmartDashboard.getNumber("Climber Limite Inferior", 0);
+    pivotPosicionTiro = SmartDashboard.getNumber("Posicion Tiro", 0);
+
+
    
     //Obtener valores del joystick de control de chasis con un multiplicador de la potencia maxima.
     des_x = -control.getLeftY() * chassisPote; 
@@ -835,6 +875,10 @@ if (cronos.get()<=2) {
     //Envio de valores de los encoders al dashboard.
     SmartDashboard.putNumber("Rotacion pivot", (int)pivotRotacion); 
     SmartDashboard.putNumber("Rotacion climber", climberRotacion);
+
+    SmartDashboard.putData("Mecanum Chasis", myRobot);
+
+
 
     //intercambiar modo de manejo entre FOD y NORMAL.
     if (fod) {
@@ -908,7 +952,7 @@ if (cronos.get()<=2) {
     pivotSwitchPID = true;
     }
   if (control.getCircleButton() || operador.getRawButtonPressed(2)) {
-    pivotPIDsetpoint = -92;
+    pivotPIDsetpoint = pivotPosicionTiro;
     pivotSwitchPID = true;
     }
     if (control.getTriangleButton() || operador.getRawButtonPressed(4)) {
@@ -1054,26 +1098,84 @@ if (cronos.get()<=2) {
 
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+    
+
+  }
 
 
   @Override
   public void testPeriodic() {
+    shooterPote = SmartDashboard.getNumber("Potencia shooter", 0);
+    intakePote = SmartDashboard.getNumber("Potencia intake", 0);
 
-    double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
-    double area = ta.getDouble(0.0);
-    double target = tv.getDouble(0.0);
+    if (control.getSquareButton()) {
 
-    if (target == 1) {
-      double PIDLimeOutGiro = PIDLimeLightGiro.calculate(x, 0);
-      double PIDLimeOutAvance = -PIDLimeLightAvance.calculate(area, 3);
+      double x = tx.getDouble(0.0);
+      double y = ty.getDouble(0.0);
+      double area = ta.getDouble(0.0);
+      double target = tv.getDouble(0.0);
 
-      myRobot.driveCartesian( PIDLimeOutAvance, 0, PIDLimeOutGiro);
+      if (target == 1) {
 
+        if (x > 1) {
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.7,0.7);
+          
+        
+        } else if (x < -1) {
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.7, 0.7);
+        
+        }
+        
+        
+        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 1),-0.8,0.8);
+
+        myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
+
+        if (Math.abs(x) <= 1 && Math.abs(area) <= 2) {
+         
+          shooterTime.start();
+          shooterPote = shooterPote;
+
+          if (shooterTime.get() > 2) {
+              intakeRight.set(intakePote);
+
+          }
+          
+
+        }
+
+
+      } else if (target == 0) {
+
+        if (control.getSquareButton() && control.getL3Button() == false) {
+          shooterTime.start();
+          shooterPote = shooterPote;
+          if (shooterTime.get() > 1) {
+            intakeRight.set(intakePote);
+          }
+        } else if (control.getSquareButton() && control.getL3Button() == true) {
+
+          shooterPote = -shooterPote;
+        }
+
+
+
+      }
+      
+      
+
+            
     } else {
-
+      shooterPote = 0;
+      shooterTime.reset();
+      intakeRight.stopMotor();
+      shooterRight.stopMotor();
       myRobot.stopMotor();
+    }
+    
+    shooterRight.set(shooterPote);
+
     }
       
 
@@ -1083,6 +1185,6 @@ if (cronos.get()<=2) {
   }
 
 
-}
+
 
 
