@@ -495,9 +495,9 @@
             ],
             "content": {
               "_type": "Graph",
-              "_source0": "network_table:///SmartDashboard/Out Pivot",
-              "_source1": "network_table:///SmartDashboard/SP Pivot",
-              "_source2": "network_table:///SmartDashboard/Sensor Pivot",
+              "_source0": "network_table:///SmartDashboard/SP Pivot",
+              "_source1": "network_table:///SmartDashboard/Sensor Pivot",
+              "_source2": "network_table:///SmartDashboard/Out Pivot",
               "_title": "SmartDashboard/SP Pivot",
               "_glyph": 148,
               "_showGlyph": false,
@@ -568,7 +568,7 @@
   "windowGeometry": {
     "x": 1912.0,
     "y": -8.0,
-    "width": 1696.0,
-    "height": 1026.0
+    "width": 1936.0,
+    "height": 1048.0
   }
 }

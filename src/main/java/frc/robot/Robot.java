@@ -342,7 +342,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
-    SmartDashboard.putNumber("Posicion Tiro", 43);
+    SmartDashboard.putNumber("Posicion Tiro", 33);
 
    
     UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
@@ -925,9 +925,9 @@ if (cronos.get()<=2) {
       intakePote = -intakePote;
     }
     else {
-      if (control.getSquareButton() == false) {
+     
         intakePote = 0;
-      } //Si no se presiona nada se detiene el motor.
+     
     }
     //solo se declara una vez el "set", en el if lo que cambia es la variable de potencia
 
@@ -948,7 +948,7 @@ if (cronos.get()<=2) {
     else if (control.getSquareButton() && control.getL3Button() == false
         || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar
       shooterPote = shooterPote;
-      intakePote = intakePote;
+      
 
       //=================================================================================
 
