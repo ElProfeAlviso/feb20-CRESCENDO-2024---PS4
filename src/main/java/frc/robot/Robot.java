@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot; //Framework de un robot tipo Iterativo 
 import edu.wpi.first.wpilibj.drive.MecanumDrive; //Libreria de control de un chasis tipo mecanum Drive.
 import edu.wpi.first.wpilibj.RobotController; //Libreria de obtencion de datos del controlador roborio.
 import edu.wpi.first.wpilibj.DriverStation; //Libreria para obtener datos del software de Driver Station.
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser; //Libreria para hacer un menu de seleccion de autonomo
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard; //Libreria para enviar y recibir datos desde y hacia el Shuffleboard.
 import edu.wpi.first.wpilibj.Timer; //Libreria para crear timers (Cronometros)
 import edu.wpi.first.wpilibj.DriverStation.Alliance; //Libreria para obtener el color de alianza desde la cancha.
@@ -39,7 +39,7 @@ import edu.wpi.first.wpilibj.SPI; //Libreria para conectar el gyroscopio en el p
 import edu.wpi.first.wpilibj.DigitalInput; //Libreria para usar entradas digitales.
 import edu.wpi.first.wpilibj.DutyCycleEncoder; //Libreria para encoder absoluto.
 import edu.wpi.first.cameraserver.CameraServer; //Libreria para enviar la imagen de la web cam al dashboard.
-import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.UsbCamera; //Libreria para crear un objeto de camara USB y modificar parametros de imagen.
 //limelight Librerias para obtener datos de posicion de la camara Lime Light.
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -81,8 +81,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
-  double PIDLimeOutGiro;
-  double PIDLimeOutAvance;
+  double PIDLimeOutGiro; //Variable Para obtener la potencia del giro del robot usando Limelight
+  double PIDLimeOutAvance; //Variable para obtener la potencia de avance del robot usando Limelight.
+
   DutyCycleEncoder pivotAbsEncoder; //Variable para DIO Sensor absoluto del pivot.
   Double pivotAbsPosition;          //Lectura de sensor en revolucion 0-1
   Double pivotAbsPositionGrados;    //Lectura del sensor en grados 0-360
@@ -96,7 +97,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   boolean LimitSwitchNoteDetected;    //Variable para guardar el estado de la nota en el intake.
 
   Timer cronos; //Timer para iniciar un cronometro de tiempo  para control de autonomos por tiempo.
-  Timer shooterTime;
+  Timer shooterTime; //Timer para inciiar un cronometro de retardo en el shotter.
 
   PS4Controller control;   //Crear el control de operador de chasis.
   GenericHID operador;     //Crear el control de operador de mecanismos.
@@ -107,14 +108,11 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   
   double tiempoMatch; //Variable para llevar la cuenta del tiempo del match para control de leds en end game.
 
-
   //AUTÓNOMOS
  
   double rotatcionAutonomo; //Variable para guardar el calculo de PID de rotacion en autonomos.
  
-  
- 
- 
+   
   //Creacion de objetos de motores del chasis con controlador VictorSPX y motores CIM.
   WPI_VictorSPX rearRight;
   WPI_VictorSPX rearLeft;
@@ -320,8 +318,8 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     
     PIDLimeLightGiro = new PIDController(0.03, 0, 0.001);
     PIDLimeLightGiro.setTolerance(1);
-    PIDLimeLightAvance = new PIDController(0.6, 0, 0.001);
-    PIDLimeLightAvance.setTolerance(0.1);
+    PIDLimeLightAvance = new PIDController(0.03, 0, 0.001);
+    PIDLimeLightAvance.setTolerance(0.3);
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
