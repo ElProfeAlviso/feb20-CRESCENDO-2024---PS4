@@ -19,7 +19,7 @@
             "content": {
               "_type": "Number Slider",
               "_source0": "network_table:///SmartDashboard/Potencia",
-              "_title": "Potencia",
+              "_title": "Potencia Chasis",
               "_glyph": 148,
               "_showGlyph": false,
               "Slider Settings/Min": 0.7,
@@ -34,11 +34,15 @@
               1
             ],
             "content": {
-              "_type": "Text View",
+              "_type": "Number Slider",
               "_source0": "network_table:///SmartDashboard/Potencia intake",
               "_title": "Potencia intake",
               "_glyph": 148,
-              "_showGlyph": false
+              "_showGlyph": false,
+              "Slider Settings/Min": -1.0,
+              "Slider Settings/Max": 1.0,
+              "Slider Settings/Block increment": 0.0625,
+              "Visuals/Display value": true
             }
           },
           "0,2": {
@@ -92,7 +96,7 @@
               "Visuals/Display value": true
             }
           },
-          "8,0": {
+          "3,3": {
             "size": [
               1,
               1
@@ -107,7 +111,7 @@
           },
           "2,2": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
@@ -118,48 +122,52 @@
               "_showGlyph": false
             }
           },
-          "10,2": {
+          "9,3": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Pivot Limite Superior",
-              "_title": "Pivot Limite Superior",
+              "_title": "PivLim Superior",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "10,3": {
+          "9,4": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Pivot Limite Inferior",
-              "_title": "Pivot Limite Inferior",
+              "_title": "Piv Lim Inferior",
               "_glyph": 148,
               "_showGlyph": false
             }
           },
-          "2,1": {
+          "2,0": {
             "size": [
               2,
-              1
+              2
             ],
             "content": {
-              "_type": "Text View",
+              "_type": "Gyro",
               "_source0": "network_table:///SmartDashboard/Angulo",
               "_title": "Angulo",
               "_glyph": 148,
-              "_showGlyph": false
+              "_showGlyph": false,
+              "Visuals/Major tick spacing": 45.0,
+              "Visuals/Starting angle": 180.0,
+              "Visuals/Show tick mark ring": true,
+              "Visuals/Counter clockwise": false
             }
           },
-          "2,4": {
+          "3,2": {
             "size": [
-              2,
+              1,
               1
             ],
             "content": {
@@ -170,7 +178,7 @@
               "_showGlyph": false
             }
           },
-          "10,0": {
+          "7,3": {
             "size": [
               2,
               1
@@ -183,7 +191,7 @@
               "_showGlyph": false
             }
           },
-          "10,1": {
+          "7,4": {
             "size": [
               2,
               1
@@ -196,10 +204,10 @@
               "_showGlyph": false
             }
           },
-          "5,1": {
+          "4,0": {
             "size": [
-              5,
-              4
+              4,
+              3
             ],
             "content": {
               "_type": "Camera Stream",
@@ -213,8 +221,8 @@
               "Controls/Rotation": "NONE",
               "compression": -1.0,
               "fps": -1,
-              "imageWidth": -1,
-              "imageHeight": -1
+              "imageWidth": 0,
+              "imageHeight": 0
             }
           },
           "12,0": {
@@ -225,7 +233,7 @@
             "content": {
               "_type": "Voltage View",
               "_source0": "network_table:///SmartDashboard/Voltaje",
-              "_title": "SmartDashboard/Voltaje",
+              "_title": "Voltaje",
               "_glyph": 148,
               "_showGlyph": false,
               "Range/Min": 11.0,
@@ -235,46 +243,24 @@
               "Visuals/Number of tick marks": 5
             }
           },
-          "2,3": {
+          "0,5": {
             "size": [
               2,
               1
             ],
             "content": {
-              "_type": "Text View",
+              "_type": "Number Slider",
               "_source0": "network_table:///SmartDashboard/Potencia Pivot PID",
               "_title": "Potencia Pivot PID",
               "_glyph": 148,
-              "_showGlyph": false
+              "_showGlyph": false,
+              "Slider Settings/Min": -1.0,
+              "Slider Settings/Max": 1.0,
+              "Slider Settings/Block increment": 0.0625,
+              "Visuals/Display value": true
             }
           },
-          "6,0": {
-            "size": [
-              2,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Seleccion de Autonomo",
-              "_title": "Seleccion de Autonomo",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "9,0": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/LimelightY",
-              "_title": "LimelightY",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "5,0": {
+          "7,5": {
             "size": [
               1,
               1
@@ -287,46 +273,7 @@
               "_showGlyph": false
             }
           },
-          "2,0": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Segundos rotar",
-              "_title": "Segundos rotar",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "3,0": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/Segundos navx",
-              "_title": "Segundos navx",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "4,0": {
-            "size": [
-              1,
-              1
-            ],
-            "content": {
-              "_type": "Text View",
-              "_source0": "network_table:///SmartDashboard/rotar angulo",
-              "_title": "rotar angulo",
-              "_glyph": 148,
-              "_showGlyph": false
-            }
-          },
-          "4,1": {
+          "8,5": {
             "size": [
               1,
               1
@@ -339,7 +286,7 @@
               "_showGlyph": false
             }
           },
-          "4,2": {
+          "2,3": {
             "size": [
               1,
               1
@@ -347,9 +294,171 @@
             "content": {
               "_type": "Text View",
               "_source0": "network_table:///SmartDashboard/Potencia shooter amp",
-              "_title": "Potencia shooter amp",
+              "_title": "Pote Shooter Amp",
               "_glyph": 148,
               "_showGlyph": false
+            }
+          },
+          "4,5": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Pivot abajo",
+              "_title": "Pivot abajo",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "4,3": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Pivot arriba",
+              "_title": "Pivot arriba",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "4,4": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Boolean Box",
+              "_source0": "network_table:///SmartDashboard/Nota Detectada",
+              "_title": "Nota Detectada",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Colors/Color when true": "#7CFC00FF",
+              "Colors/Color when false": "#8B0000FF"
+            }
+          },
+          "5,5": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/SP Pivot",
+              "_title": "SP Pivot",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "6,5": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Sensor Pivot",
+              "_title": "Sensor Pivot",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "2,4": {
+            "size": [
+              2,
+              2
+            ],
+            "content": {
+              "_type": "Gyro",
+              "_source0": "network_table:///SmartDashboard/Angulo Pivot",
+              "_title": "Angulo Pivot",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Visuals/Major tick spacing": 30.0,
+              "Visuals/Starting angle": 90.0,
+              "Visuals/Show tick mark ring": true,
+              "Visuals/Counter clockwise": true
+            }
+          },
+          "9,5": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/LimelightTarget",
+              "_title": "LimelightTarget",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "5,3": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "ComboBox Chooser",
+              "_source0": "network_table:///SmartDashboard/Seleccion Autonomo",
+              "_title": "Seleccion Autonomo",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "5,4": {
+            "size": [
+              2,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/Posicion Tiro",
+              "_title": "Posicion Tiro",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "10,3": {
+            "size": [
+              3,
+              3
+            ],
+            "content": {
+              "_type": "Mecanum Drivebase",
+              "_source0": "network_table:///SmartDashboard/Mecanum Chasis",
+              "_title": "/SmartDashboard/Mecanum Chasis",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Visuals/Show velocity vectors": true
+            }
+          },
+          "8,0": {
+            "size": [
+              4,
+              3
+            ],
+            "content": {
+              "_type": "Camera Stream",
+              "_source0": "camera_server://limelight",
+              "_title": "limelight",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Crosshair/Show crosshair": true,
+              "Crosshair/Crosshair color": "#FFFFFFFF",
+              "Controls/Show controls": true,
+              "Controls/Rotation": "NONE",
+              "compression": -1.0,
+              "fps": -1,
+              "imageWidth": -1,
+              "imageHeight": -1
             }
           }
         }
@@ -367,12 +476,99 @@
         "titleType": 0,
         "tiles": {}
       }
+    },
+    {
+      "title": "PIDs",
+      "autoPopulate": false,
+      "autoPopulatePrefix": "",
+      "widgetPane": {
+        "gridSize": 64.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "12,0": {
+            "size": [
+              8,
+              6
+            ],
+            "content": {
+              "_type": "Graph",
+              "_source0": "network_table:///SmartDashboard/SP Pivot",
+              "_source1": "network_table:///SmartDashboard/Sensor Pivot",
+              "_source2": "network_table:///SmartDashboard/Out Pivot",
+              "_title": "SmartDashboard/SP Pivot",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Graph/Visible time": 30.0,
+              "Graph/X-axis auto scrolling": true,
+              "Y-axis/Automatic bounds": true,
+              "Y-axis/Upper bound": 1.0,
+              "Y-axis/Lower bound": -1.0,
+              "Y-axis/Unit": "ul",
+              "Visible data/SmartDashboard/Out Pivot": true,
+              "Visible data/SmartDashboard/SP Pivot": true,
+              "Visible data/SmartDashboard/Sensor Pivot": true
+            }
+          },
+          "12,6": {
+            "size": [
+              6,
+              4
+            ],
+            "content": {
+              "_type": "Mecanum Drivebase",
+              "_source0": "network_table:///SmartDashboard/Mecanum Chasis",
+              "_title": "/SmartDashboard/Mecanum Chasis",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Visuals/Show velocity vectors": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Tab 4",
+      "autoPopulate": false,
+      "autoPopulatePrefix": "",
+      "widgetPane": {
+        "gridSize": 128.0,
+        "showGrid": true,
+        "hgap": 16.0,
+        "vgap": 16.0,
+        "titleType": 0,
+        "tiles": {
+          "0,0": {
+            "size": [
+              11,
+              6
+            ],
+            "content": {
+              "_type": "Camera Stream",
+              "_source0": "camera_server://limelight",
+              "_title": "limelight",
+              "_glyph": 148,
+              "_showGlyph": false,
+              "Crosshair/Show crosshair": true,
+              "Crosshair/Crosshair color": "#FFFFFFFF",
+              "Controls/Show controls": true,
+              "Controls/Rotation": "NONE",
+              "compression": -1.0,
+              "fps": -1,
+              "imageWidth": 0,
+              "imageHeight": 0
+            }
+          }
+        }
+      }
     }
   ],
   "windowGeometry": {
-    "x": -7.0,
-    "y": 4.0,
-    "width": 1918.0,
-    "height": 838.0
+    "x": -1928.0,
+    "y": -8.0,
+    "width": 1936.0,
+    "height": 1048.0
   }
 }
