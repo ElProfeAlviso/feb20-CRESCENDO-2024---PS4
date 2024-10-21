@@ -81,6 +81,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
 
+  boolean ShooterState;
+
   double PIDLimeOutGiro; //Variable Para obtener la potencia del giro del robot usando Limelight
   double PIDLimeOutAvance; //Variable para obtener la potencia de avance del robot usando Limelight.
 
@@ -148,7 +150,7 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
   double pivotPIDsetpoint; //El setpoint utilizado para las diferentes posiciones del pivot.
   PIDController pivotPID;  //Controlador PID del Pivo y sus parametros.
 
-  static final double pivotkP = 0.02;
+  static final double pivotkP = 0.03;
   static final double pivotkI = 0.00;
   static final double pivotkD = 0.001;
   static final double pivotkToleranceDegrees = 2.0f;
@@ -319,28 +321,28 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
     PIDLimeLightGiro = new PIDController(0.03, 0, 0.001);
     PIDLimeLightGiro.setTolerance(1);
     PIDLimeLightAvance = new PIDController(0.03, 0, 0.001);
-    PIDLimeLightAvance.setTolerance(0.3);
+    PIDLimeLightAvance.setTolerance(0.1);
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
-    SmartDashboard.putNumber("Potencia", 0.8);
+    SmartDashboard.putNumber("Potencia", 0.9);
     SmartDashboard.putNumber("Potencia intake", 0.8);
     SmartDashboard.putNumber("Potencia shooter", 0.7); //0.3 para amp
     SmartDashboard.putNumber("Potencia shooter amp", 0.3);
     SmartDashboard.putNumber("Potencia pivot", 0.7);
-    SmartDashboard.putNumber("Potencia Pivot PID", 0.65);
+    SmartDashboard.putNumber("Potencia Pivot PID", 0.75);
     SmartDashboard.putNumber("Potencia climber", 0.9);
     SmartDashboard.putBoolean("FOD", true);
     SmartDashboard.putNumber("Rotacion pivot", 0);
     SmartDashboard.putNumber("Rotacion climber", 0);
-    SmartDashboard.putNumber("Pivot Limite Superior", 50);
-    SmartDashboard.putNumber("Pivot Limite Inferior", -145);
+    SmartDashboard.putNumber("Pivot Limite Superior", 107);
+    SmartDashboard.putNumber("Pivot Limite Inferior", 1);
     SmartDashboard.putNumber("Climber Limite Superior", 225);
     SmartDashboard.putNumber("Climber Limite Inferior", 10);
     //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
-    SmartDashboard.putNumber("Posicion Tiro", -65);
+    SmartDashboard.putNumber("Posicion Tiro", 43);
 
    
     UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
@@ -448,7 +450,12 @@ public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
    
 
     // Obtener valores de los encoders de pivot y climber (Se invierte el giro del encoder por la posicion del motor)
-    pivotRotacion = -pivotEncoder.getPosition(); 
+    // pivotRotacion = -pivotEncoder.getPosition(); 
+   
+    pivotAbsPosition = pivotAbsEncoder.get(); // Obtener los datos del encoder en revoluciones.
+    pivotAbsPositionGrados = pivotAbsPosition * 360; // Convertir a grados el encoder absoluto.
+    pivotRotacion = pivotAbsPositionGrados;
+
     climberRotacion = -climberEncoder.getPosition();
 
     //Se envia los valores de los encoders al Dashboard.
@@ -867,7 +874,12 @@ if (cronos.get()<=2) {
     angulosChassis = control.getPOV();
 
     // Obtener valores de los encoders de pivot y climber.
-    pivotRotacion = -pivotEncoder.getPosition(); 
+    //pivotRotacion = -pivotEncoder.getPosition(); 
+
+    pivotAbsPosition = pivotAbsEncoder.get(); // Obtener los datos del encoder en revoluciones.
+    pivotAbsPositionGrados = pivotAbsPosition * 360; // Convertir a grados el encoder absoluto.
+
+    pivotRotacion = pivotAbsPositionGrados;
     climberRotacion = -climberEncoder.getPosition();
 
     //Envio de valores de los encoders al dashboard.
@@ -912,14 +924,18 @@ if (cronos.get()<=2) {
     (control.getL2Button() || operador.getRawAxis(2) > 0.5){ // Regresar
       intakePote = -intakePote;
     }
-  else {
-      intakePote = 0; //Si no se presiona nada se detiene el motor.
+    else {
+      if (control.getSquareButton() == false) {
+        intakePote = 0;
+      } //Si no se presiona nada se detiene el motor.
     }
-    intakeRight.set(intakePote); //solo se declara una vez el "set", en el if lo que cambia es la variable de potencia
+    //solo se declara una vez el "set", en el if lo que cambia es la variable de potencia
 
-//SHOOTER
+    //SHOOTER
+    //intakeRight.set(intakePote);
+    
 
-  if (pivotRotacion > 0) {   //Cambio de potencia cuando esta en posicion de AMP.
+  if (pivotRotacion > 90) {   //Cambio de potencia cuando esta en posicion de AMP.
       shooterPote = shooterAmpPote;
     }
   else{
@@ -929,14 +945,49 @@ if (cronos.get()<=2) {
   if (control.getSquareButton() && control.getL3Button()==true || operador.getRawButton(3) && operador.getRawButton(9)==true){ //Regresar
       shooterPote = -shooterPote;
     } 
-  else if (control.getSquareButton()&& control.getL3Button()==false || operador.getRawButton(3)&& operador.getRawButton(9)==false){ //Lanzar
+    else if (control.getSquareButton() && control.getL3Button() == false
+        || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar
       shooterPote = shooterPote;
-    }
+      intakePote = intakePote;
+
+      //=================================================================================
+
+      x = tx.getDouble(0.0);
+      y = ty.getDouble(0.0);
+      area = ta.getDouble(0.0);
+      target = tv.getDouble(0.0);
+
+      if (target == 1) {
+
+        if (x > 1) {
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.8, 0.8);
+
+        } else if (x < -1) {
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.8, 0.8);
+
+        }
+
+        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3), -0.8, 0.8);
+
+        myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
+
+        //================================================================================
+
+      }
+      
+      
+    } 
   else {
-      shooterPote = 0;
+    shooterPote = 0;
+        
+   
     }
   
-   shooterRight.set(shooterPote);
+    shooterRight.set(shooterPote);
+    intakeRight.set(intakePote);
+    
+    
+    
     
 
   //Control de Pivot Automatico con PID
@@ -946,7 +997,7 @@ if (cronos.get()<=2) {
     pivotSwitchPID = true;
     }
   if (control.getPSButtonPressed() || operador.getRawButtonPressed(8)) {
-    pivotPIDsetpoint = 0;
+    pivotPIDsetpoint = 77;
     pivotSwitchPID = true;
     }
   if (control.getCircleButton() || operador.getRawButtonPressed(2)) {
@@ -1104,11 +1155,13 @@ if (cronos.get()<=2) {
 
   @Override
   public void testPeriodic() {
+   /* 
     shooterPote = SmartDashboard.getNumber("Potencia shooter", 0);
     intakePote = SmartDashboard.getNumber("Potencia intake", 0);
 
     if (control.getSquareButton()) {
 
+      
       double x = tx.getDouble(0.0);
       double y = ty.getDouble(0.0);
       double area = ta.getDouble(0.0);
@@ -1117,68 +1170,63 @@ if (cronos.get()<=2) {
       if (target == 1) {
 
         if (x > 1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.7,0.7);
-          
-        
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.8, 0.8);
+
         } else if (x < -1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.7, 0.7);
-        
+          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.8, 0.8);
+
         }
-        
-        
-        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3),-0.8,0.8);
+
+        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3), -0.8, 0.8);
 
         myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
 
-        if (Math.abs(x) <= 2 && Math.abs(area) <= 1) {
-         
+        if (Math.abs(x) <= 2) {
+
           shooterTime.start();
           shooterPote = shooterPote;
 
-          if (shooterTime.get() > 2) {
-              intakeRight.set(intakePote);
+          if (shooterTime.get() > 0.5) {
+            intakeRight.set(intakePote);
 
           }
+
           
-
         }
-
 
       } else if (target == 0) {
 
         if (control.getSquareButton() && control.getL3Button() == false) {
           shooterTime.start();
           shooterPote = shooterPote;
-          if (shooterTime.get() > 1) {
+          if (shooterTime.get() > 0.5) {
             intakeRight.set(intakePote);
           }
+          
         } else if (control.getSquareButton() && control.getL3Button() == true) {
 
           shooterPote = -shooterPote;
         }
 
-
-
       }
-      
-      
 
-            
     } else {
       shooterPote = 0;
       shooterTime.reset();
       intakeRight.stopMotor();
       shooterRight.stopMotor();
       myRobot.stopMotor();
-    }
-    
-    shooterRight.set(shooterPote);
-
-    }
       
 
-
+    }
     
+    
+    shooterRight.set(shooterPote);
+    
+      */
+  }
+
+   
 
   }
 
