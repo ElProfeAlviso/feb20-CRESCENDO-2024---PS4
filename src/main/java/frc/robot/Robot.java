@@ -79,7 +79,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
     
 */
 
-public class Robot extends TimedRobot { //Declaracion de variables y Objetos.
+public class Robot extends TimedRobot {
+  
+  boolean TiroAuto;//Declaracion de variables y Objetos.
+
+
+  boolean shooterStarted = false;
+  boolean intakeStarted = false;
 
   boolean ShooterState;
 
@@ -810,6 +816,8 @@ if (cronos.get()<=2) {
   @Override
   public void teleopInit() {
 
+    TiroAuto = false;
+
     //Cambiar modo neutral de motores a modo Brake.
     rearLeft.setNeutralMode(NeutralMode.Brake);
     rearRight.setNeutralMode(NeutralMode.Brake);
@@ -934,6 +942,8 @@ if (cronos.get()<=2) {
     //SHOOTER
     //intakeRight.set(intakePote);
     
+    
+    
 
   if (pivotRotacion > 90) {   //Cambio de potencia cuando esta en posicion de AMP.
       shooterPote = shooterAmpPote;
@@ -944,13 +954,12 @@ if (cronos.get()<=2) {
 
   if (control.getSquareButton() && control.getL3Button()==true || operador.getRawButton(3) && operador.getRawButton(9)==true){ //Regresar
       shooterPote = -shooterPote;
-    } 
-    else if (control.getSquareButton() && control.getL3Button() == false
-        || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar
+    } else if (control.getSquareButton() && control.getL3Button() == false
+        || operador.getRawButton(3) && operador.getRawButton(9) == false) {
+          // Lanzar
       shooterPote = shooterPote;
-      
 
-      //=================================================================================
+      // =================================================================================
 
       x = tx.getDouble(0.0);
       y = ty.getDouble(0.0);
@@ -971,18 +980,15 @@ if (cronos.get()<=2) {
 
         myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
 
-        //================================================================================
+        // ================================================================================
 
       }
-      
-      
-    } 
-  else {
-    shooterPote = 0;
-        
-   
+
+    } else {
+      shooterPote = 0;
+
     }
-  
+
     shooterRight.set(shooterPote);
     intakeRight.set(intakePote);
     
