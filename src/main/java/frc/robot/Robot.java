@@ -954,41 +954,77 @@ if (cronos.get()<=2) {
 
   if (control.getSquareButton() && control.getL3Button()==true || operador.getRawButton(3) && operador.getRawButton(9)==true){ //Regresar
       shooterPote = -shooterPote;
-    } else if (control.getSquareButton() && control.getL3Button() == false
-        || operador.getRawButton(3) && operador.getRawButton(9) == false) {
-          // Lanzar
-      shooterPote = shooterPote;
+    } 
+    else if (control.getSquareButton() && control.getL3Button() == false
+        || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar
 
-      // =================================================================================
+      TiroAuto = true;
+    } else {
 
-      x = tx.getDouble(0.0);
-      y = ty.getDouble(0.0);
-      area = ta.getDouble(0.0);
-      target = tv.getDouble(0.0);
-
-      if (target == 1) {
-
-        if (x > 1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.8, 0.8);
-
-        } else if (x < -1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.8, 0.8);
-
-        }
-
-        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3), -0.8, 0.8);
-
-        myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
-
-        // ================================================================================
+      if (TiroAuto == false && control.getSquareButton() == false && control.getL3Button() == false
+          || TiroAuto == false && operador.getRawButton(3) == false && operador.getRawButton(9) == false) {
+        shooterPote = 0;
+        shooterTime.stop();
+        shooterTime.reset();
 
       }
 
-    } else {
-      shooterPote = 0;
+     
 
     }
 
+      if (TiroAuto == true) {
+
+        shooterTime.start();
+
+        if (!shooterStarted) {
+          shooterPote = shooterPote;// Encender el motor del shooter
+
+          shooterTime.reset();
+          shooterStarted = true; // Marca que el shooter está encendido
+          intakeStarted = false; // Resetea el estado del intake
+        }
+
+        // Verifica si ha pasado 1 segundo desde que el shooter empezó
+        if (shooterStarted && shooterTime.hasElapsed(1.0)) {
+          intakePote = SmartDashboard.getNumber("Potencia intake", 0);// Enciende el motor del intake
+          intakeStarted = true; // Marca que el intake ya está encendido
+        }
+
+        if (shooterStarted && shooterTime.hasElapsed(2)) {
+          shooterPote = 0;
+          intakePote = 0;
+          TiroAuto = false;
+
+        }
+
+        x = tx.getDouble(0.0);
+        y = ty.getDouble(0.0);
+        area = ta.getDouble(0.0);
+        target = tv.getDouble(0.0);
+
+        if (target == 1) {
+
+          if (x > 1) {
+            PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.8, 0.8);
+
+          } else if (x < -1) {
+            PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.8, 0.8);
+
+          }
+
+          PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3), -0.8, 0.8);
+
+          myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
+
+          // ================================================================================
+
+        }
+      }
+    
+      
+      
+    
     shooterRight.set(shooterPote);
     intakeRight.set(intakePote);
     
