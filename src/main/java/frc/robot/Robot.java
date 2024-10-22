@@ -84,10 +84,10 @@ public class Robot extends TimedRobot {
   boolean TiroAuto;//Declaracion de variables y Objetos.
 
 
-  boolean shooterStarted = false;
-  boolean intakeStarted = false;
+  boolean shooterStarted = false; //Variable para indicar que el shooter esta activo.
+  boolean intakeStarted = false; //Variable para indicar que el intake esta activo.
 
-  boolean ShooterState;
+  boolean ShooterState;  //Variable de estado del shooter.
 
   double PIDLimeOutGiro; //Variable Para obtener la potencia del giro del robot usando Limelight
   double PIDLimeOutAvance; //Variable para obtener la potencia de avance del robot usando Limelight.
@@ -227,6 +227,7 @@ public class Robot extends TimedRobot {
   private static final String kRojoCentroAuto = "Rojo Centro";
   private static final String kRojoDerechaAuto = "Rojo Derecha";
 
+  //Creacion de menu de seleccion de autonomo.
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
@@ -236,6 +237,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {// Construir todos los objetos con sus puertos y valores iniciales.
 
+
+    //Nombres de los diferentes autonomos.
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("Azul Izquierda", kAzulIzquierdaAuto);
     m_chooser.addOption("Azul Centro", kAzulCentroAuto);
@@ -256,7 +259,7 @@ public class Robot extends TimedRobot {
     LimitSwitchNote = new DigitalInput(2);       // Sensor infrarojo conectado en DIO 2
   
     cronos = new Timer(); //Nuevo timer para cronometrar tiempo de autonomo.
-    shooterTime = new Timer();
+    shooterTime = new Timer(); //Timer para cronometrar tiro automatico del shooter.
 
     //Asignacion de IDS de red CAN a motores del Chasis con controladores VictorSPX y motores CIM.
     rearRight = new WPI_VictorSPX(2);
@@ -404,7 +407,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
 
-
+    //Obtencion de seleccion de autonomo del dashboard.
     m_autoSelected = m_chooser.getSelected();
     System.out.println("Auto selected: " + m_autoSelected);
 
@@ -816,7 +819,7 @@ if (cronos.get()<=2) {
   @Override
   public void teleopInit() {
 
-    TiroAuto = false;
+    TiroAuto = false; //Activacion de tiro automatico.
 
     //Cambiar modo neutral de motores a modo Brake.
     rearLeft.setNeutralMode(NeutralMode.Brake);
@@ -850,6 +853,8 @@ if (cronos.get()<=2) {
 
   @Override
   public void teleopPeriodic() {
+
+    //Obtencion de lecturas de Limelight.
 
 
     double x = tx.getDouble(0.0);
@@ -887,7 +892,7 @@ if (cronos.get()<=2) {
     pivotAbsPosition = pivotAbsEncoder.get(); // Obtener los datos del encoder en revoluciones.
     pivotAbsPositionGrados = pivotAbsPosition * 360; // Convertir a grados el encoder absoluto.
 
-    pivotRotacion = pivotAbsPositionGrados;
+    pivotRotacion = pivotAbsPositionGrados; //Guardar rotacion del pivot para sistemas en grados.
     climberRotacion = -climberEncoder.getPosition();
 
     //Envio de valores de los encoders al dashboard.
@@ -956,11 +961,12 @@ if (cronos.get()<=2) {
       shooterPote = -shooterPote;
     } 
     else if (control.getSquareButton() && control.getL3Button() == false
-        || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar
+        || operador.getRawButton(3) && operador.getRawButton(9) == false) { //Lanzar automatico.
 
-      TiroAuto = true;
+      TiroAuto = true; //Activacion de lanzamiento automatico.
     } else {
 
+      //Si no esta activo el shooter ni hay botones presionados se detiene.
       if (TiroAuto == false && control.getSquareButton() == false && control.getL3Button() == false
           || TiroAuto == false && operador.getRawButton(3) == false && operador.getRawButton(9) == false) {
         shooterPote = 0;
@@ -972,15 +978,15 @@ if (cronos.get()<=2) {
      
 
     }
-
+      //Si se activo el shooter presionando el cuadrado se ejecuta la secuenciad e tiro.
       if (TiroAuto == true) {
 
-        shooterTime.start();
+        shooterTime.start(); //Se inicia el timer del shooter.
 
         if (!shooterStarted) {
           shooterPote = shooterPote;// Encender el motor del shooter
 
-          shooterTime.reset();
+          shooterTime.reset();    //Se resetea el timer para que comience de cero.
           shooterStarted = true; // Marca que el shooter está encendido
           intakeStarted = false; // Resetea el estado del intake
         }
@@ -990,14 +996,14 @@ if (cronos.get()<=2) {
           intakePote = SmartDashboard.getNumber("Potencia intake", 0);// Enciende el motor del intake
           intakeStarted = true; // Marca que el intake ya está encendido
         }
-
+          //si ya pasaron 2 segundos se confirma lanzamiento y se apagan shooter e intake.
         if (shooterStarted && shooterTime.hasElapsed(2)) {
           shooterPote = 0;
           intakePote = 0;
           TiroAuto = false;
 
         }
-
+        //Posicionamiento automatico con limelight al estar activo el shooter.
         x = tx.getDouble(0.0);
         y = ty.getDouble(0.0);
         area = ta.getDouble(0.0);
@@ -1023,7 +1029,7 @@ if (cronos.get()<=2) {
       }
     
       
-      
+      //actualizacion de motores de intake y shooter.
     
     shooterRight.set(shooterPote);
     intakeRight.set(intakePote);
@@ -1197,75 +1203,7 @@ if (cronos.get()<=2) {
 
   @Override
   public void testPeriodic() {
-   /* 
-    shooterPote = SmartDashboard.getNumber("Potencia shooter", 0);
-    intakePote = SmartDashboard.getNumber("Potencia intake", 0);
-
-    if (control.getSquareButton()) {
-
-      
-      double x = tx.getDouble(0.0);
-      double y = ty.getDouble(0.0);
-      double area = ta.getDouble(0.0);
-      double target = tv.getDouble(0.0);
-
-      if (target == 1) {
-
-        if (x > 1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) - minGiroLimelight, -0.8, 0.8);
-
-        } else if (x < -1) {
-          PIDLimeOutGiro = MathUtil.clamp(PIDLimeLightGiro.calculate(x, 0) + minGiroLimelight, -0.8, 0.8);
-
-        }
-
-        PIDLimeOutAvance = MathUtil.clamp(-PIDLimeLightAvance.calculate(area, 0.3), -0.8, 0.8);
-
-        myRobot.driveCartesian(PIDLimeOutAvance, 0, PIDLimeOutGiro);
-
-        if (Math.abs(x) <= 2) {
-
-          shooterTime.start();
-          shooterPote = shooterPote;
-
-          if (shooterTime.get() > 0.5) {
-            intakeRight.set(intakePote);
-
-          }
-
-          
-        }
-
-      } else if (target == 0) {
-
-        if (control.getSquareButton() && control.getL3Button() == false) {
-          shooterTime.start();
-          shooterPote = shooterPote;
-          if (shooterTime.get() > 0.5) {
-            intakeRight.set(intakePote);
-          }
-          
-        } else if (control.getSquareButton() && control.getL3Button() == true) {
-
-          shooterPote = -shooterPote;
-        }
-
-      }
-
-    } else {
-      shooterPote = 0;
-      shooterTime.reset();
-      intakeRight.stopMotor();
-      shooterRight.stopMotor();
-      myRobot.stopMotor();
-      
-
-    }
-    
-    
-    shooterRight.set(shooterPote);
-    
-      */
+   
   }
 
    
