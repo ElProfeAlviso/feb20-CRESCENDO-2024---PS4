@@ -351,7 +351,7 @@ public class Robot extends TimedRobot {
     //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
-    SmartDashboard.putNumber("Posicion Tiro", 33);
+    SmartDashboard.putNumber("Posicion Tiro", 45);
 
    
     UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
