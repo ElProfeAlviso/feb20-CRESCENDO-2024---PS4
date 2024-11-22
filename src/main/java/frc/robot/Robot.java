@@ -334,24 +334,24 @@ public class Robot extends TimedRobot {
                                                  
     
     // inicializar datos para visualizacion en Dashboard con valores iniciales.
-    SmartDashboard.putNumber("Potencia", 0.9);
-    SmartDashboard.putNumber("Potencia intake", 0.8);
-    SmartDashboard.putNumber("Potencia shooter", 0.7); //0.3 para amp
-    SmartDashboard.putNumber("Potencia shooter amp", 0.3);
-    SmartDashboard.putNumber("Potencia pivot", 0.7);
-    SmartDashboard.putNumber("Potencia Pivot PID", 0.75);
+    SmartDashboard.putNumber("Potencia", 1);
+    SmartDashboard.putNumber("Potencia intake", 0.85);
+    SmartDashboard.putNumber("Potencia shooter", 0.75); //0.3 para amp
+    SmartDashboard.putNumber("Potencia shooter amp", 0.4);
+    SmartDashboard.putNumber("Potencia pivot", 0.8);
+    SmartDashboard.putNumber("Potencia Pivot PID", 0.8);
     SmartDashboard.putNumber("Potencia climber", 0.9);
     SmartDashboard.putBoolean("FOD", true);
     SmartDashboard.putNumber("Rotacion pivot", 0);
     SmartDashboard.putNumber("Rotacion climber", 0);
     SmartDashboard.putNumber("Pivot Limite Superior", 107);
-    SmartDashboard.putNumber("Pivot Limite Inferior", 1);
+    SmartDashboard.putNumber("Pivot Limite Inferior", 10);
     SmartDashboard.putNumber("Climber Limite Superior", 225);
     SmartDashboard.putNumber("Climber Limite Inferior", 10);
     //SmartDashboard.putNumber("Seleccion de Autonomo", 0);
     SmartDashboard.putNumber("Angulo", (int) navx.getYaw());
     SmartDashboard.putNumber("Angulo Pivot", 0);
-    SmartDashboard.putNumber("Posicion Tiro", 45);
+    SmartDashboard.putNumber("Posicion Tiro", 40);
 
    
     UsbCamera camera = CameraServer.startAutomaticCapture();// Inicia transmision de webcam.
@@ -775,17 +775,17 @@ if (cronos.get()<=2) {
 
     else if (cronos.get()<=5.5){//un segundo para avanzar
       rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
-      myRobot.driveCartesian(0.3, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
+      myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
       shooterRight.stopMotor();
       intakeRight.stopMotor();
     }
     else if (cronos.get()<=7) {
-      rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),-65);
+      rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
       myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
     }
     else if (cronos.get()<8) {
-      rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),-65);
-      myRobot.driveCartesian(0, -0.5, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
+      rotatcionAutonomo = -chassisPID.calculate(navx.getYaw(),0);
+      myRobot.driveCartesian(0, 0, rotatcionAutonomo , Rotation2d.fromDegrees(navx.getAngle()));
     }
        else if (cronos.get()<9) {
      myRobot.stopMotor();
